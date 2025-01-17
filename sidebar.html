@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Flomo Clipper</title>
+    <link rel="stylesheet" href="styles/sidebar.css">
+</head>
+<body>
+    <div class="sidebar-container">
+        <h2>Flomo Clipper</h2>
+        
+        <div class="input-group">
+            <label>原文标题和链接</label>
+            <textarea id="titleAndLink" readonly></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>原文摘要</label>
+            <textarea id="summary" placeholder="请粘贴原文摘要"></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>个人感想</label>
+            <textarea id="thoughts" placeholder="请输入您的感想"></textarea>
+        </div>
+
+        <button id="submitBtn">提交到 Flomo</button>
+        <div id="message" class="message"></div>
+    </div>
+    <script src="scripts/sidebar.js"></script>
+</body>
+</html> 
