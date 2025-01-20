@@ -10,12 +10,14 @@
     padding: 28px;
     box-sizing: border-box;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    display: flex;
+    flex-direction: column;
 }
 
 .sidebar-container {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 56px); /* 减去padding的高度 */
+    height: 100%;
 }
 
 .input-sections {
@@ -60,13 +62,13 @@ textarea {
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 6px;
-    height: 36px;
     min-height: 36px;
-    max-height: 200px;
-    resize: vertical;
+    max-height: none;
+    resize: none;
     font-size: 13px;
     line-height: 1.6;
     transition: all 0.2s ease;
+    overflow-y: hidden;
 }
 
 #link {
@@ -97,35 +99,31 @@ textarea:not(#link):focus {
 .button-section {
     position: sticky;
     bottom: 0;
+    left: 0;
+    right: 0;
     background: white;
-    padding-top: 16px;
-    margin-top: 8px;
-    border-top: 1px solid #f0f0f0;
+    padding: 16px 0;
+    margin-top: 16px;
+    border-top: 1px solid #eee;
+    z-index: 100;
 }
 
-button {
-    width: 100%;
-    height: 48px;
-    padding: 0;
-    background: linear-gradient(145deg, rgb(48, 207, 121) 0%, rgb(42, 187, 109) 100%);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(48, 207, 121, 0.2);
-    transition: all 0.2s ease;
+#submitBtn {
+    display: block !important;
+    width: 100% !important;
+    padding: 12px !important;
+    background-color: rgb(48, 207, 121) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    transition: background-color 0.2s ease !important;
 }
 
-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(48, 207, 121, 0.3);
-}
-
-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(48, 207, 121, 0.2);
+#submitBtn:hover {
+    background-color: rgb(39, 179, 104) !important;
 }
 
 .message {
@@ -164,4 +162,28 @@ button:active {
 
 .flomo-toast.show {
     transform: translateX(-50%) translateY(0);
-} 
+}
+
+.ai-summary-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: #fff;
+    background-color: rgb(48, 207, 121);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ai-summary-btn:hover {
+    background-color: rgb(39, 179, 104);
+}
+
+.ai-summary-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}

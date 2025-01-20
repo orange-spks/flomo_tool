@@ -34,6 +34,13 @@
 
 ## 版本历史
 
+### 0.1.2
+- ✨ 新增AI总结功能，支持一键生成网页内容摘要
+- 🎨 优化输入框自适应效果，更流畅的高度调整
+- 💄 改进UI样式，优化按钮和输入框的视觉效果
+- 🐛 修复Edge浏览器下提交按钮可能不可见的问题
+- ⚡️ 优化输入框性能，添加平滑过渡效果
+
 ### 0.1.1
 - 🐛 修复页面刷新后需要点击两次的问题
 - ✨ 优化错误提示机制
@@ -46,6 +53,23 @@
 - 📋 支持复制摘要和添加感想
 - 🔗 支持一键同步到 Flomo
 - 🛡️ 添加域名限制和错误处理
+
+## API配置
+
+### DeepSeek API
+本项目使用DeepSeek API来实现AI总结功能。
+
+- API文档：https://api-docs.deepseek.com/zh-cn/
+- 使用模型：deepseek-chat
+- API Key: 请在项目根目录下创建 `.env` 文件，添加以下内容：
+  ```
+  DEEPSEEK_API_KEY=your_api_key_here
+  ```
+  注意：不要直接在代码中硬编码API Key
+
+### Flomo API
+- API文档：https://v.flomoapp.com/mine?source=incoming_webhook
+- Webhook地址：https://flomoapp.com/iwh/ODcyOTY/8ed3b45bc8b3e51b9d02234f876acf51/
 
 ## 技术栈
 

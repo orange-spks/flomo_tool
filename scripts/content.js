@@ -25,7 +25,7 @@ function createSidebar() {
                     </div>
 
                     <div class="input-group">
-                        <label>📌 原文摘要</label>
+                        <label>📌 原文摘要 <button id="aiSummaryBtn" class="ai-summary-btn">AI总结</button></label>
                         <textarea id="summary" placeholder="请粘贴原文摘要"></textarea>
                     </div>
 
@@ -55,6 +55,8 @@ function initializeSidebar() {
     const titleInput = document.querySelector('#title');
     const linkInput = document.querySelector('#link');
     const submitBtn = document.querySelector('#submitBtn');
+    const aiSummaryBtn = document.querySelector('#aiSummaryBtn');
+    const summaryTextarea = document.querySelector('#summary');
 
     // 设置当前页面标题和链接
     const pageTitle = document.title;
@@ -65,6 +67,31 @@ function initializeSidebar() {
 
     // 初始化自动调整高度
     initializeAutoResize();
+
+    // AI总结按钮点击事件
+    aiSummaryBtn.addEventListener('click', async () => {
+        try {
+            // 更新按钮状态
+            aiSummaryBtn.disabled = true;
+            aiSummaryBtn.textContent = '生成中...';
+            
+            // 调用API生成总结
+            const summary = await generateSummary();
+            
+            // 更新摘要框内容并触发自适应高度
+            summaryTextarea.value = summary;
+            smoothResizeTextarea(summaryTextarea);
+            
+            // 显示成功消息
+            showMessage('AI总结完成！', 'success');
+        } catch (error) {
+            showMessage('AI总结失败：' + error.message, 'error');
+        } finally {
+            // 恢复按钮状态
+            aiSummaryBtn.disabled = false;
+            aiSummaryBtn.textContent = 'AI总结';
+        }
+    });
 
     // 提交按钮点击事件
     submitBtn.addEventListener('click', async () => {
@@ -187,19 +214,136 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 // 确保消息监听器已经设置
 console.log('Content script loaded and listening for messages'); 
 
-// 在 createSidebar 函数后添加自动调整文本框高度的功能
+// 平滑调整文本框高度
+function smoothResizeTextarea(textarea) {
+    // 保存当前滚动位置
+    const scrollPos = window.scrollY;
+    
+    // 临时设置高度为auto来获取实际内容高度
+    textarea.style.height = 'auto';
+    const targetHeight = Math.max(36, textarea.scrollHeight); // 最小高度36px
+    
+    // 使用requestAnimationFrame实现平滑过渡
+    requestAnimationFrame(() => {
+        textarea.style.transition = 'height 0.2s ease';
+        textarea.style.height = targetHeight + 'px';
+        
+        // 恢复滚动位置
+        window.scrollTo(0, scrollPos);
+        
+        // 过渡完成后清除transition
+        setTimeout(() => {
+            textarea.style.transition = '';
+        }, 200);
+    });
+}
+
+// 初始化自动调整高度
 function initializeAutoResize() {
     const textareas = document.querySelectorAll('textarea');
+    
     textareas.forEach(textarea => {
-        if (textarea.id !== 'link') {
-            textarea.addEventListener('input', function() {
-                this.style.height = '36px';
-                this.style.height = (this.scrollHeight) + 'px';
+        // 初始调整
+        smoothResizeTextarea(textarea);
+        
+        // 监听输入事件
+        textarea.addEventListener('input', () => {
+            smoothResizeTextarea(textarea);
+        });
+        
+        // 监听值变化（用于AI生成内容时）
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                    smoothResizeTextarea(textarea);
+                }
             });
-            
-            // 初始化高度
-            textarea.style.height = '36px';
-            textarea.style.height = (textarea.scrollHeight) + 'px';
-        }
+        });
+        
+        observer.observe(textarea, { attributes: true });
     });
-} 
+}
+
+// AI总结相关常量
+const DEEPSEEK_API_KEY = 'REDACTED_API_KEY';
+const SYSTEM_PROMPT = `你是一个专业的网页内容总结助手，请你对输入的网页内容进行总结，要求：
+1. 总结控制在100字以内
+2. 保持结构清晰，突出重点
+3. 使用客观的语言
+4. 根据内容类型采取不同的总结策略：
+   - 如果是文章：突出核心观点
+   - 如果是教程/指南：突出关键步骤
+   - 如果是产品介绍：描述其主要功能和特点
+   - 如果是首页/着陆页：简要描述网站/产品的主要用途
+5. 去除所有营销和推广相关的内容
+请直接输出总结内容，不要添加任何其他解释或说明。`;
+
+// 获取页面主要内容
+function getMainContent() {
+    // 移除不需要的元素
+    const elementsToRemove = [
+        'header', 'nav', 'footer', 'aside', 
+        '[role="banner"]', '[role="navigation"]', '[role="complementary"]',
+        '[class*="menu"]', '[class*="sidebar"]', '[class*="footer"]', '[class*="header"]',
+        '[class*="nav"]', '[class*="ad"]', '[class*="social"]'
+    ];
+    
+    // 创建页面副本以避免修改原页面
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = document.body.innerHTML;
+    
+    // 移除不需要的元素
+    elementsToRemove.forEach(selector => {
+        const elements = tempDiv.querySelectorAll(selector);
+        elements.forEach(el => el.remove());
+    });
+    
+    // 获取主要内容
+    const mainContent = document.title + '\n\n' + tempDiv.textContent;
+    
+    // 清理文本
+    return mainContent
+        .replace(/\\s+/g, ' ')  // 合并空白字符
+        .replace(/\\n\\s*\\n/g, '\\n')  // 移除多余换行
+        .trim()
+        .slice(0, 4000);  // 限制长度以适应API
+}
+
+// 调用DeepSeek API
+async function generateSummary() {
+    const content = getMainContent();
+    
+    try {
+        const response = await fetch('https://api.deepseek.com/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [
+                    {
+                        "role": "system",
+                        "content": SYSTEM_PROMPT
+                    },
+                    {
+                        "role": "user",
+                        "content": content
+                    }
+                ],
+                stream: false
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`API调用失败: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    } catch (error) {
+        console.error('AI总结失败:', error);
+        throw error;
+    }
+}
