@@ -12,6 +12,7 @@ function createSidebar() {
         
         // 创建侧边栏内容
         sidebar.innerHTML = `
+            <button class="close-btn" id="closeBtn" aria-label="关闭"></button>
             <div class="sidebar-container">
                 <div class="input-sections">
                     <div class="input-group">
@@ -44,6 +45,27 @@ function createSidebar() {
         
         document.body.appendChild(sidebar);
         initializeSidebar();
+
+        // 添加点击外部关闭功能
+        document.addEventListener('click', (event) => {
+            const sidebar = document.querySelector('.flomo-sidebar');
+            // 如果点击的是侧边栏内部或侧边栏不可见，则不处理
+            if (!sidebar || 
+                sidebar.style.display === 'none' || 
+                sidebar.contains(event.target) || 
+                event.target.closest('.flomo-toast')) {
+                return;
+            }
+            toggleSidebar();
+        });
+
+        // 添加关闭按钮点击事件
+        const closeBtn = document.querySelector('#closeBtn');
+        closeBtn.addEventListener('click', (event) => {
+            event.stopPropagation();  // 防止触发外部点击事件
+            toggleSidebar();
+        });
+
     } catch (error) {
         console.error('Failed to create sidebar:', error);
         showToast('创建侧边栏失败，请刷新页面重试');
@@ -113,13 +135,13 @@ function initializeSidebar() {
             });
 
             if (response.ok) {
-                showMessage('提交成功！', 'success');
+                showToast('笔记已保存到 Flomo');
                 clearInputs();
             } else {
-                showMessage('提交失败：' + response.statusText, 'error');
+                showToast('保存失败：' + response.statusText);
             }
         } catch (error) {
-            showMessage('提交失败：' + error.message, 'error');
+            showToast('保存失败：' + error.message);
         }
     });
 }
