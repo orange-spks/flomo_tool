@@ -7,14 +7,18 @@
     "activeTab",
     "scripting",
     "tabs",
-    "notifications"
+    "notifications",
+    "storage"
   ],
   "host_permissions": [
     "https://*.flomoapp.com/*",
-    "https://flomoapp.com/*"
+    "https://flomoapp.com/*",
+    "https://api.deepseek.com/*",
+    "https://ark.cn-beijing.volces.com/*",
+    "https://open.bigmodel.cn/*"
   ],
   "web_accessible_resources": [{
-    "resources": ["sidebar.html", "styles/*", "scripts/*", "images/*"],
+    "resources": ["sidebar.html", "styles/*", "scripts/*", "images/*", "prompt_help_read.txt"],
     "matches": ["<all_urls>"]
   }],
   "background": {
