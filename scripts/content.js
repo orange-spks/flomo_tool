@@ -1,4 +1,5 @@
 const FLOMO_WEBHOOK_STORAGE_KEY = 'FLOMO_WEBHOOK_URL';
+const ENABLE_IMAGE_UPLOAD = false; // 当前禁用图片上传（Flomo Webhook 不支持 Base64 图片）
 
 // Shadow DOM 样式 - 完全隔离
 const SHADOW_STYLE = `
@@ -560,7 +561,6 @@ function createSidebar() {
                             <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮">🖍</button>
                             <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表">☰</button>
                             <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="有序列表">1.</button>
-                            <button type="button" class="toolbar-btn upload-btn" data-target="summary" title="上传图片">+</button>
                         </div>
                     </div>
 
@@ -574,7 +574,6 @@ function createSidebar() {
                             <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮">🖍</button>
                             <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表">☰</button>
                             <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="有序列表">1.</button>
-                            <button type="button" class="toolbar-btn upload-btn" data-target="thoughts" title="上传图片">+</button>
                         </div>
                     </div>
 
@@ -1584,14 +1583,16 @@ function initializeFixedToolbars() {
             });
         });
 
-        // 图片上传按钮
-        const uploadBtn = toolbar.querySelector('.upload-btn');
-        if (uploadBtn) {
-            uploadBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = uploadBtn.dataset.target;
-                triggerImageUpload(targetId);
-            });
+        // 图片上传按钮（仅在启用时绑定）
+        if (ENABLE_IMAGE_UPLOAD) {
+            const uploadBtn = toolbar.querySelector('.upload-btn');
+            if (uploadBtn) {
+                uploadBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = uploadBtn.dataset.target;
+                    triggerImageUpload(targetId);
+                });
+            }
         }
     });
 }
@@ -1772,6 +1773,12 @@ function bindKeyboardShortcuts(editor) {
 
 // 处理粘贴事件
 function handlePaste(e) {
+    // 图片上传已禁用，不拦截图片粘贴
+    if (!ENABLE_IMAGE_UPLOAD) {
+        setTimeout(() => autoResizeEditor(this), 0);
+        return;
+    }
+
     const items = e.clipboardData.items;
     let hasImage = false;
 
@@ -1790,6 +1797,13 @@ function handlePaste(e) {
         setTimeout(() => autoResizeEditor(this), 0);
     }
 }
+
+// ============================================================
+// 图片上传功能（当前已禁用）
+// 原因：Flomo Webhook 暂不支持 Base64 图片传递
+// 前端上传入口已隐藏（ENABLE_IMAGE_UPLOAD = false）
+// 以下代码保留，以便未来 Flomo 支持图片时快速恢复
+// ============================================================
 
 // 触发图片上传
 function triggerImageUpload(targetId) {
