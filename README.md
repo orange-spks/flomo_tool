@@ -1,149 +1,57 @@
 # Flomo Clipper
 
-一个简单好用的 Chrome 扩展，帮助你快速将网页内容同步到 Flomo。
+一键将网页内容同步到 Flomo 的 Chrome 浏览器扩展。
 
-## 功能特点
+## 功能特性
 
-- 🚀 一键唤起/收起侧边栏
-- 📝 自动获取页面标题和链接
-- 🎨 **富文本编辑**：支持加粗、下划线、高亮、列表等格式
-- 📌 支持复制原文摘要
-- 💭 添加个人感想
-- 🖼️ **图片上传**：支持粘贴上传和点击上传
-- 🤖 AI 自动总结网页内容
-- 🔄 一键同步到 Flomo
+- 🚀 **一键唤起侧边栏**：点击扩展图标，在当前页面右侧弹出编辑面板
+- 📝 **自动获取页面信息**：自动提取当前页面标题和链接
+- ✨ **富文本编辑**：支持加粗、高亮、无序/有序列表、下划线等格式
+- 🤖 **AI 自动总结**：支持 DeepSeek、硅基流动、Kimi、Qwen 等任意 OpenAI 兼容格式平台
+- 🖼️ **图片处理**：编辑器支持图片展示（粘贴上传入口当前隐藏，等待 Flomo 支持）
+- 🔒 **配置本地存储**：Webhook 地址和 API Key 均保存在浏览器本地，不上传服务器
 
 ## 安装方法
 
 1. 下载本项目代码
-2. 打开 Chrome 浏览器，进入扩展程序页面（chrome://extensions/）
-3. 开启右上角的"开发者模式"
-4. 点击"加载已解压的扩展程序"
-5. 选择项目文件夹即可
+2. 打开 Chrome 扩展管理页面（`chrome://extensions/`）
+3. 开启右上角"开发者模式"
+4. 点击"加载已解压的扩展程序"，选择本项目根目录
 
-## 使用说明
+## 配置说明
 
-1. 在任意网页点击工具栏中的 Flomo Clipper 图标
-2. 在右侧弹出的侧边栏中：
-   - 标题和链接会自动填充
-   - 可以复制粘贴原文摘要
-   - 可以输入个人感想
-3. 点击"提交到 Flomo"按钮即可同步内容
+### 1. Flomo Webhook 地址
 
-### 富文本编辑功能
+1. 打开 Flomo 网页版 → 设置 → API 与第三方应用
+2. 复制 "Incoming Webhook" 地址
+3. 在扩展侧边栏的「设置」中粘贴并保存
 
-编辑器支持以下格式：
+### 2. AI 模型配置（用于 AI 总结功能）
 
-| 功能 | 快捷键 | 工具栏 |
-|------|--------|--------|
-| 加粗 | `Ctrl+B` | B |
-| 下划线 | `Ctrl+U` | U |
-| 高亮 | - | 🖍 |
-| 无序列表 | - | ☰ |
-| 有序列表 | - | 1. |
-| 图片上传 | 粘贴或点击 + | + |
+在扩展侧边栏的「设置」中配置：
 
-- **浮动工具栏**：选中文本时自动出现，可快速设置格式
-- **固定工具栏**：位于每个编辑器底部，始终可见
-- **图片上传**：支持直接粘贴图片，或点击 + 按钮选择图片
+| 配置项 | 说明 | 示例 |
+|--------|------|------|
+| API Base URL | 大模型 API 的基础地址 | `https://api.deepseek.com` |
+| 模型名称 | 要调用的模型 ID | `deepseek-v4` |
+| API Key | 你的 API 密钥 | `sk-xxxxxxxx` |
 
-### 使用限制
-- 插件在 Flomo 的编辑页面不可用
-- 仅支持正常的网页内容
-- 不支持浏览器特殊页面（如新标签页）
+**支持的默认平台**（已在 manifest 中授权）：
+- DeepSeek: `https://api.deepseek.com`
+- 硅基流动: `https://api.siliconflow.cn`
+- Kimi (Moonshot): `https://api.moonshot.cn`
+- Qwen (DashScope): `https://dashscope.aliyuncs.com`
+
+若使用其他平台，需在 `chrome://extensions` → 扩展详情 → 站点访问权限中手动添加对应域名。
 
 ## 版本历史
 
-### 0.1.3
-- ✨ 新增富文本编辑器，支持加粗、下划线、高亮、列表等格式
-- 🖼️ 支持图片上传（粘贴上传和点击上传）
-- ⌨️ 支持快捷键操作（Ctrl+B 加粗、Ctrl+U 下划线等）
-- 🔧 浮动工具栏：选中文本时自动显示格式按钮
-- 📝 优化输出到 Flomo 的格式模板
+### v0.1.3
+- 重构：彻底清理辅助阅读冗余代码
+- 升级：AI 总结支持通用 OpenAI 格式多模型配置
+- 调整：前端隐藏图片上传入口（Flomo Webhook 暂不支持 Base64 图片）
 
-### 0.1.2
-- ✨ 新增AI总结功能，支持一键生成网页内容摘要
-- 🎨 优化输入框自适应效果，更流畅的高度调整
-- 💄 改进UI样式，优化按钮和输入框的视觉效果
-- 🐛 修复Edge浏览器下提交按钮可能不可见的问题
-- ⚡️ 优化输入框性能，添加平滑过渡效果
-
-### 0.1.1
-- 🐛 修复页面刷新后需要点击两次的问题
-- ✨ 优化错误提示机制
-- 🔧 完善页面加载状态检查
-- 💄 优化提交内容格式
-
-### 0.1.0
-- ✨ 首次发布
-- 🎨 支持侧边栏展示
-- 📋 支持复制摘要和添加感想
-- 🔗 支持一键同步到 Flomo
-- 🛡️ 添加域名限制和错误处理
-
-## API配置
-
-### DeepSeek API（密钥本地存储）
-本项目使用 DeepSeek API 来实现 AI 总结功能。
-
-- API文档：https://api-docs.deepseek.com/zh-cn/
-- 使用模型：deepseek-chat
-- API Key 配置：打开侧边栏 → 点击「⚙️ 设置」→ 在「DeepSeek API Key」处填写你的 API Key → 点击「保存 API Key」
-- 密钥仅存于本机 Chrome 本地存储（`chrome.storage.local`），不会随代码泄露
-
-### Flomo API（密钥不明文写入代码）
-- API 文档：https://v.flomoapp.com/mine?source=incoming_webhook
-- Webhook 地址**不写在代码里**，仅在扩展内通过「Flomo Webhook 设置」填写并保存，密钥仅存于本机 Chrome 本地存储（`chrome.storage.local`），不会随代码泄露。
-- 使用步骤：打开侧边栏 → 点击「⚙️ 设置」→ 粘贴你的 incoming webhook 地址（形如 `https://flomoapp.com/iwh/xxx/xxx/`）→ 点击「保存 Webhook」。
-
-## 辅助阅读（多模型支持）
-
-辅助阅读功能支持切换 **火山引擎 Ark**、**DeepSeek**、**智谱 GLM**。在扩展里通过 Chrome 本地存储选择模型与填写对应 API Key。
-
-### 在扩展中切换模型
-
-在任意页面打开开发者工具 → Console，执行：
-
-```javascript
-// 使用智谱（需先设置智谱 API Key）
-chrome.storage.local.set({ HELP_READ_PROVIDER: 'zhipu', ZHIPU_API_KEY: '你的智谱API Key' });
-
-// 使用 DeepSeek
-chrome.storage.local.set({ HELP_READ_PROVIDER: 'deepseek', DEEPSEEK_API_KEY: '你的DeepSeek Key' });
-
-// 使用火山引擎 Ark（默认）
-chrome.storage.local.set({ HELP_READ_PROVIDER: 'ark', ARK_API_KEY: '你的Ark Key' });
-```
-
-智谱 API Key 获取：<https://open.bigmodel.cn/>，模型使用 `glm-4-flash`。
-
-## 辅助阅读 E2E 测试（指定文章）
-
-用指定文章 URL 跑完整流程（抓取正文 → 调用大模型 → 解析 → 生成 HTML）：
-
-```bash
-# 仅抓取正文并生成示例 HTML（不调 API）
-node test_help_read_e2e.js
-
-# 完整流程（任选其一 Key，优先 Ark → DeepSeek → 智谱）
-ARK_API_KEY=你的key node test_help_read_e2e.js
-ZHIPU_API_KEY=你的key node test_help_read_e2e.js
-DEEPSEEK_API_KEY=你的key node test_help_read_e2e.js
-```
-
-脚本默认使用文章：<https://www.aitntnews.com/newDetail.html?newId=22115>  
-结果会写入项目根目录下的 `test_help_read_result.html`，用浏览器打开即可查看辅助阅读渲染效果。
-
-## 技术栈
-
-- Chrome Extension API
-- JavaScript
-- CSS3
-
-## 贡献指南
-
-欢迎提交 Issue 和 Pull Request 来帮助改进这个项目。
-
-## 许可证
-
-MIT License 
+### v0.1.2
+- 修复提交后侧边栏无法关闭的问题
+- 修复 Flomo 内容格式渲染不完整的问题
+- 添加 `content_type: "markdown"` 参数确保格式正确解析
