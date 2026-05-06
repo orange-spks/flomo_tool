@@ -582,9 +582,11 @@ function createSidebar() {
                         <button type="button" id="settingsToggle" class="settings-toggle" aria-expanded="false"><span>⚙️ 设置</span><span class="settings-arrow">▼</span></button>
                         <div id="settingsPanel" class="settings-panel" hidden>
                             <p class="settings-hint">配置保存在浏览器本地，扩展不会自动读取项目目录下的 .env 文件。</p>
-                            <label>DeepSeek API Key（用于 AI 总结功能）</label>
-                            <input type="password" id="deepseekApiKey" placeholder="sk-xxxxxxxxxxxxxxxx" autocomplete="off" />
-                            <button type="button" id="saveApiKeyBtn" class="save-webhook-btn" style="margin-bottom: 16px;">保存 API Key</button>
+                            <label>🤖 AI 模型配置</label>
+                            <input type="url" id="aiApiBaseUrl" placeholder="API Base URL，如 https://api.deepseek.com" autocomplete="off" />
+                            <input type="text" id="aiModel" placeholder="模型名称，如 deepseek-v4" autocomplete="off" style="margin-top: 8px;" />
+                            <input type="password" id="aiApiKey" placeholder="API Key，如 sk-xxxxxxxx" autocomplete="off" style="margin-top: 8px;" />
+                            <button type="button" id="saveAiConfigBtn" class="save-webhook-btn" style="margin-bottom: 16px;">保存 AI 配置</button>
 
                             <label style="border-top: 1px solid #eee; padding-top: 16px; display: block;">Flomo Webhook 地址</label>
                             <input type="url" id="flomoWebhookUrl" placeholder="https://flomoapp.com/iwh/xxx/xxx/" autocomplete="off" />
@@ -765,12 +767,23 @@ function initializeSidebar() {
     titleInput.value = `《${pageTitle.trim()}》`;
     linkInput.value = pageUrl;
 
-    // 从本地存储加载配置
-    chrome.storage.local.get([FLOMO_WEBHOOK_STORAGE_KEY, DEEPSEEK_API_KEY_STORAGE_KEY], (result) => {
-        const webhookInput = getShadowElement('#flomoWebhookUrl');
-        const apiKeyInput = getShadowElement('#deepseekApiKey');
-        if (webhookInput) webhookInput.value = result[FLOMO_WEBHOOK_STORAGE_KEY] || '';
-        if (apiKeyInput) apiKeyInput.value = result[DEEPSEEK_API_KEY_STORAGE_KEY] || '';
+    // 加载配置时先迁移旧配置
+    migrateLegacyConfig().then(() => {
+        chrome.storage.local.get([
+            FLOMO_WEBHOOK_STORAGE_KEY,
+            AI_API_BASE_URL_STORAGE_KEY,
+            AI_MODEL_STORAGE_KEY,
+            AI_API_KEY_STORAGE_KEY
+        ], (result) => {
+            const webhookInput = getShadowElement('#flomoWebhookUrl');
+            const baseUrlInput = getShadowElement('#aiApiBaseUrl');
+            const modelInput = getShadowElement('#aiModel');
+            const apiKeyInput = getShadowElement('#aiApiKey');
+            if (webhookInput) webhookInput.value = result[FLOMO_WEBHOOK_STORAGE_KEY] || '';
+            if (baseUrlInput) baseUrlInput.value = result[AI_API_BASE_URL_STORAGE_KEY] || '';
+            if (modelInput) modelInput.value = result[AI_MODEL_STORAGE_KEY] || '';
+            if (apiKeyInput) apiKeyInput.value = result[AI_API_KEY_STORAGE_KEY] || '';
+        });
     });
     const settingsToggle = getShadowElement('#settingsToggle');
     const settingsPanel = getShadowElement('#settingsPanel');
@@ -805,25 +818,34 @@ function initializeSidebar() {
         });
     }
 
-    // 保存 API Key 按钮
-    const saveApiKeyBtn = getShadowElement('#saveApiKeyBtn');
-    const apiKeyInput = getShadowElement('#deepseekApiKey');
-    if (saveApiKeyBtn && apiKeyInput) {
-        saveApiKeyBtn.addEventListener('click', () => {
-            const apiKey = apiKeyInput.value.trim();
-            if (!apiKey) {
-                // 输入框为空时清除 storage 中的配置
-                chrome.storage.local.remove([DEEPSEEK_API_KEY_STORAGE_KEY], () => {
-                    showMessage('API Key 已清除', 'success');
+    // 保存 AI 配置按钮
+    const saveAiConfigBtn = getShadowElement('#saveAiConfigBtn');
+    const baseUrlInput = getShadowElement('#aiApiBaseUrl');
+    const modelInput = getShadowElement('#aiModel');
+    const apiKeyInput = getShadowElement('#aiApiKey');
+    if (saveAiConfigBtn) {
+        saveAiConfigBtn.addEventListener('click', () => {
+            const baseUrl = baseUrlInput ? baseUrlInput.value.trim() : '';
+            const model = modelInput ? modelInput.value.trim() : '';
+            const apiKey = apiKeyInput ? apiKeyInput.value.trim() : '';
+
+            // 分别保存/清除每个字段
+            const saveOrRemove = (key, value) => {
+                return new Promise((resolve) => {
+                    if (!value) {
+                        chrome.storage.local.remove([key], resolve);
+                    } else {
+                        chrome.storage.local.set({ [key]: value }, resolve);
+                    }
                 });
-                return;
-            }
-            if (!apiKey.startsWith('sk-')) {
-                showMessage('API Key 格式不正确，应以 sk- 开头', 'error');
-                return;
-            }
-            chrome.storage.local.set({ [DEEPSEEK_API_KEY_STORAGE_KEY]: apiKey }, () => {
-                showMessage('API Key 已保存', 'success');
+            };
+
+            Promise.all([
+                saveOrRemove(AI_API_BASE_URL_STORAGE_KEY, baseUrl),
+                saveOrRemove(AI_MODEL_STORAGE_KEY, model),
+                saveOrRemove(AI_API_KEY_STORAGE_KEY, apiKey)
+            ]).then(() => {
+                showMessage('AI 配置已保存', 'success');
             });
         });
     }
@@ -854,15 +876,15 @@ function initializeSidebar() {
         } catch (error) {
             showMessage('AI总结失败：' + error.message, 'error');
 
-            // 如果是 API Key 未配置，自动打开设置面板
-            if (error.message.includes('请先设置 DeepSeek API Key')) {
+            // 如果是 AI 配置未配置，自动打开设置面板
+            if (error.message.includes('请先在设置中配置 AI 模型')) {
                 const panel = getShadowElement('#settingsPanel');
                 const toggle = getShadowElement('#settingsToggle');
                 if (panel && toggle) {
                     panel.hidden = false;
                     toggle.setAttribute('aria-expanded', 'true');
                     // 聚焦到 API Key 输入框
-                    const apiKeyInput = getShadowElement('#deepseekApiKey');
+                    const apiKeyInput = getShadowElement('#aiApiKey');
                     if (apiKeyInput) {
                         setTimeout(() => apiKeyInput.focus(), 100);
                     }
@@ -1143,8 +1165,11 @@ function initializeAutoResize() {
     });
 }
 
-// AI总结相关常量
-const DEEPSEEK_API_KEY_STORAGE_KEY = 'DEEPSEEK_API_KEY';
+// AI 模型配置常量（通用 OpenAI 格式）
+const AI_API_BASE_URL_STORAGE_KEY = 'AI_API_BASE_URL';
+const AI_MODEL_STORAGE_KEY = 'AI_MODEL';
+const AI_API_KEY_STORAGE_KEY = 'AI_API_KEY';
+const LEGACY_DEEPSEEK_API_KEY_STORAGE_KEY = 'DEEPSEEK_API_KEY';
 
 const SYSTEM_PROMPT = `# 角色
 你是一个极为专业且精准的网页内容总结助手，能够全面且细致地提炼主要内容，并给出极具代表性的关键词。
@@ -1309,46 +1334,82 @@ function getMainContent() {
         .slice(0, 4000);  // 限制长度以适应API
 }
 
-// 调用DeepSeek API
-async function generateSummary() {
-    const content = getMainContent();
-
-    // 从本地存储读取 API Key
-    const apiKey = await new Promise((resolve) => {
-        chrome.storage.local.get([DEEPSEEK_API_KEY_STORAGE_KEY], (result) => {
-            resolve(result[DEEPSEEK_API_KEY_STORAGE_KEY] || '');
-        });
+// 自动迁移旧版 DeepSeek 配置到新版通用配置
+async function migrateLegacyConfig() {
+    const stored = await new Promise((resolve) => {
+        chrome.storage.local.get([
+            LEGACY_DEEPSEEK_API_KEY_STORAGE_KEY,
+            AI_API_KEY_STORAGE_KEY,
+            AI_API_BASE_URL_STORAGE_KEY,
+            AI_MODEL_STORAGE_KEY
+        ], resolve);
     });
 
-    if (!apiKey) {
-        throw new Error('请先设置 DeepSeek API Key');
+    const legacyKey = stored[LEGACY_DEEPSEEK_API_KEY_STORAGE_KEY];
+    const hasNewConfig = stored[AI_API_KEY_STORAGE_KEY];
+
+    if (legacyKey && !hasNewConfig) {
+        await new Promise((resolve) => {
+            chrome.storage.local.set({
+                [AI_API_BASE_URL_STORAGE_KEY]: 'https://api.deepseek.com',
+                [AI_MODEL_STORAGE_KEY]: 'deepseek-v4',
+                [AI_API_KEY_STORAGE_KEY]: legacyKey
+            }, resolve);
+        });
+        await new Promise((resolve) => {
+            chrome.storage.local.remove([LEGACY_DEEPSEEK_API_KEY_STORAGE_KEY], resolve);
+        });
+        console.log('[Flomo] 已自动迁移旧版 DeepSeek 配置到新版通用配置');
+    }
+}
+
+// 调用通用 OpenAI 兼容 API
+async function generateSummary() {
+    // 先尝试迁移旧配置
+    await migrateLegacyConfig();
+
+    const content = getMainContent();
+
+    // 从本地存储读取配置
+    const config = await new Promise((resolve) => {
+        chrome.storage.local.get([
+            AI_API_BASE_URL_STORAGE_KEY,
+            AI_MODEL_STORAGE_KEY,
+            AI_API_KEY_STORAGE_KEY
+        ], resolve);
+    });
+
+    const baseUrl = (config[AI_API_BASE_URL_STORAGE_KEY] || '').trim();
+    const model = (config[AI_MODEL_STORAGE_KEY] || '').trim();
+    const apiKey = (config[AI_API_KEY_STORAGE_KEY] || '').trim();
+
+    if (!baseUrl || !model || !apiKey) {
+        throw new Error('请先在设置中配置 AI 模型（API Base URL、模型名称、API Key）');
     }
 
+    // 确保 baseUrl 不以斜杠结尾
+    const normalizedBaseUrl = baseUrl.replace(/\/$/, '');
+
     try {
-        const response = await fetch('https://api.deepseek.com/chat/completions', {
+        const response = await fetch(`${normalizedBaseUrl}/chat/completions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: "deepseek-chat",
+                model: model,
                 messages: [
-                    {
-                        "role": "system",
-                        "content": SYSTEM_PROMPT
-                    },
-                    {
-                        "role": "user",
-                        "content": content
-                    }
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    { role: 'user', content: content }
                 ],
                 stream: false
             })
         });
 
         if (!response.ok) {
-            throw new Error(`API调用失败: ${response.status}`);
+            const errText = await response.text().catch(() => '');
+            throw new Error(`API 调用失败 (${response.status}): ${errText || response.statusText}`);
         }
 
         const data = await response.json();
