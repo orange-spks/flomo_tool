@@ -875,50 +875,6 @@ function initializeSidebar() {
         }
     });
 
-    // 辅助阅读按钮（已注释停用）
-    // const helpReadBtn = document.querySelector('#helpReadBtn');
-    // if (helpReadBtn) {
-    //     updateHelpReadButtonLabel(helpReadBtn);
-    //     helpReadBtn.addEventListener('click', async () => {
-    //         if (helpReadState.isActive) {
-    //             restoreHelpRead();
-    //             updateHelpReadButtonLabel(helpReadBtn);
-    //             removeHelpReadProgress();
-    //             showToast('已取消辅助阅读');
-    //             return;
-    //         }
-    //         try {
-    //             helpReadBtn.disabled = true;
-    //             helpReadBtn.textContent = '分析中...';
-    //             const articleText = getHelpReadArticleText();
-    //             if (!articleText || articleText.length < 10) {
-    //                 showMessage('页面正文过短，无法进行辅助阅读', 'error');
-    //                 return;
-    //             }
-    //             const needsStreaming = articleText.length > HELP_READ_MAX_CHARS;
-    //             if (needsStreaming) {
-    //                 const chunks = splitArticleIntoChunks(articleText);
-    //                 createHelpReadProgress();
-    //                 createStreamingResultContainer(chunks.length);
-    //                 const articleAnalysis = await fetchHelpReadAnalysis(articleText, true);
-    //                 updateHelpReadButtonLabel(helpReadBtn);
-    //                 showToast('辅助阅读已开启');
-    //             } else {
-    //                 const articleAnalysis = await fetchHelpReadAnalysis(articleText, false);
-    //                 applyHelpRead(articleAnalysis);
-    //                 updateHelpReadButtonLabel(helpReadBtn);
-    //                 showToast('辅助阅读已开启');
-    //             }
-    //         } catch (err) {
-    //             removeHelpReadProgress();
-    //             showMessage('辅助阅读失败：' + (err.message || String(err)), 'error');
-    //         } finally {
-    //             helpReadBtn.disabled = false;
-    //             updateHelpReadButtonLabel(helpReadBtn);
-    //         }
-    //     });
-    // }
-
     // 提交按钮点击事件
     submitBtn.addEventListener('click', async () => {
         const title = getShadowElement('#title').value;
