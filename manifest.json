@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Flomo Clipper",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "一键将网页内容同步到 Flomo",
   "permissions": [
     "activeTab",
@@ -14,11 +14,12 @@
     "https://*.flomoapp.com/*",
     "https://flomoapp.com/*",
     "https://api.deepseek.com/*",
-    "https://ark.cn-beijing.volces.com/*",
-    "https://open.bigmodel.cn/*"
+    "https://api.siliconflow.cn/*",
+    "https://api.moonshot.cn/*",
+    "https://dashscope.aliyuncs.com/*"
   ],
   "web_accessible_resources": [{
-    "resources": ["sidebar.html", "styles/*", "scripts/*", "images/*", "prompt_help_read.txt"],
+    "resources": ["sidebar.html", "styles/*", "scripts/*", "images/*"],
     "matches": ["<all_urls>"]
   }],
   "background": {
