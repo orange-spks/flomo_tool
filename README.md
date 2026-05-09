@@ -32,15 +32,20 @@
 
 | 配置项 | 说明 | 示例 |
 |--------|------|------|
-| API Base URL | 大模型 API 的基础地址 | `https://api.deepseek.com` |
-| 模型名称 | 要调用的模型 ID | `deepseek-v4` |
+| API Base URL | 大模型 API 的基础地址 | `https://api.deepseek.com` 或 `https://api.siliconflow.cn/v1` |
+| 模型名称 | 要调用的模型 ID | `deepseek-chat` / `deepseek-ai/DeepSeek-V3` |
 | API Key | 你的 API 密钥 | `sk-xxxxxxxx` |
 
-**支持的默认平台**（已在 manifest 中授权）：
-- DeepSeek: `https://api.deepseek.com`
-- 硅基流动: `https://api.siliconflow.cn`
-- Kimi (Moonshot): `https://api.moonshot.cn`
-- Qwen (DashScope): `https://dashscope.aliyuncs.com`
+**各平台配置示例**：
+
+| 平台 | Base URL | 模型示例 |
+|------|----------|----------|
+| DeepSeek | `https://api.deepseek.com` | `deepseek-chat` |
+| 硅基流动 | `https://api.siliconflow.cn/v1` | `deepseek-ai/DeepSeek-V3` |
+| Kimi (Moonshot) | `https://api.moonshot.cn` | `moonshot-v1-8k` |
+| Qwen (DashScope) | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-turbo` |
+
+> 注意：硅基流动的模型 ID 必须带厂商前缀，如 `deepseek-ai/DeepSeek-V3`，不能简写为 `DeepSeek-V3`。
 
 若使用其他平台，需在 `chrome://extensions` → 扩展详情 → 站点访问权限中手动添加对应域名。
 
@@ -50,6 +55,8 @@
 - 重构：彻底清理辅助阅读冗余代码
 - 升级：AI 总结支持通用 OpenAI 格式多模型配置
 - 调整：前端隐藏图片上传入口（Flomo Webhook 暂不支持 Base64 图片）
+- 修复：`htmlToMarkdown` 段落分隔问题，确保文本与块元素正确换行
+- 修复：高亮/下划线 fallback 到标准 Markdown（Flomo 不支持 `==高亮==` 和 `<u>` 标签）
 
 ### v0.1.2
 - 修复提交后侧边栏无法关闭的问题

@@ -35,6 +35,7 @@ Flomo Clipper 是一个 Chrome 浏览器扩展（Manifest V3），帮助用户�
 ### 6. 已知技术债务
 - ✅ **安全风险**: ~~DeepSeek API Key 硬编码~~ → 已改为用户配置存储在 `chrome.storage.local`
 - ✅ **代码臃肿**: ~~辅助阅读功能已注释停用，但代码仍保留在 background.js 中~~ → 已在 v0.1.3 中彻底清理
+- ✅ **HTML 转 Markdown**: 已修复段落分隔逻辑（v0.1.3+），高亮/下划线 fallback 到标准 Markdown
 - **维护困难**: HTML 转 Markdown 逻辑复杂，建议使用 `turndown` 等成熟库
 - **多模型配置**: 已完成通用 OpenAI 格式改造（v0.1.3），支持用户自定义 Base URL 和模型
 - **图片传递可靠性**: Flomo Webhook 暂不支持 Base64 图片，前端入口已隐藏，后端代码保留（v0.1.3）
@@ -138,3 +139,23 @@ Flomo Clipper 是一个 Chrome 浏览器扩展（Manifest V3），帮助用户�
 - `scripts/content.js`: 删除辅助阅读代码，升级 AI 调用逻辑，隐藏图片上传入口
 - `manifest.json`: 更新 host_permissions 和版本号到 0.1.3
 - `README.md`: 新建项目文档
+
+---
+
+## 会话记录 [2026-05-09]
+
+### 概要
+修复 `htmlToMarkdown` 在提交到 Flomo 时的格式渲染问题，并调研硅基流动 API 配置。
+
+### 问题与修复
+1. **段落分隔问题**：文本节点和块元素（div/p/ul/ol）之间缺少段间距，导致内容挤在一起。
+   - 修复：移除 div/p/ul/ol 内部的尾部换行，在顶层遍历中根据块元素状态插入 `\n\n`
+
+2. **高亮/下划线不渲染**：Flomo 不支持 `==高亮==`（非标准 Markdown）和 `<u>` 内联 HTML 标签。
+   - 修复：高亮 fallback 到加粗 `**text**`，下划线 fallback 到斜体 `*text*`
+
+### 调研结论
+硅基流动完全兼容 OpenAI 格式，配置如下：
+- Base URL: `https://api.siliconflow.cn/v1`
+- 模型: `deepseek-ai/DeepSeek-V3`（必须带厂商前缀）
+- 认证: `Authorization: Bearer <API_KEY>`
