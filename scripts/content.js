@@ -1984,15 +1984,18 @@ function htmlToMarkdown(html) {
                 case 'em':
                     return '*' + childContent.trim() + '*';
                 case 'u':
-                    return '<u>' + childContent.trim() + '</u>';
+                    // Flomo 不支持 <u> HTML 标签，fallback 到斜体
+                    return '*' + childContent.trim() + '*';
                 case 'mark':
-                    return '==' + childContent.trim() + '==';
+                    // Flomo 不支持 ==高亮== 语法，fallback 到加粗
+                    return '**' + childContent.trim() + '**';
                 case 'span':
                     // 检查是否是高亮样式
                     const style = node.getAttribute('style') || '';
                     const bgColor = node.style.backgroundColor;
                     if (bgColor === 'rgb(255, 235, 59)' || bgColor === '#ffeb3b' || bgColor === 'yellow') {
-                        return '==' + childContent.trim() + '==';
+                        // Flomo 不支持 ==高亮== 语法，fallback 到加粗
+                        return '**' + childContent.trim() + '**';
                     }
                     return childContent;
                 case 'img':
