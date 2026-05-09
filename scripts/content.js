@@ -2001,9 +2001,8 @@ function htmlToMarkdown(html) {
                 case 'br':
                     return '\n';
                 case 'div':
-                    return childContent.trim() + '\n';
                 case 'p':
-                    return childContent.trim() + '\n\n';
+                    return childContent.trim();
                 case 'ul':
                     return Array.from(node.children).map(li => {
                         if (li.tagName.toLowerCase() === 'li') {
@@ -2011,7 +2010,7 @@ function htmlToMarkdown(html) {
                             return '- ' + liContent;
                         }
                         return '';
-                    }).filter(Boolean).join('\n') + '\n';
+                    }).filter(Boolean).join('\n');
                 case 'ol':
                     let index = 1;
                     return Array.from(node.children).map(li => {
@@ -2020,7 +2019,7 @@ function htmlToMarkdown(html) {
                             return (index++) + '. ' + liContent;
                         }
                         return '';
-                    }).filter(Boolean).join('\n') + '\n';
+                    }).filter(Boolean).join('\n');
                 case 'li':
                     // li 会在 ul/ol 处理中被处理，这里直接返回内容
                     return childContent;
@@ -2032,7 +2031,32 @@ function htmlToMarkdown(html) {
         return '';
     }
 
-    let md = Array.from(tempDiv.childNodes).map(node => processNode(node)).join('');
+    // 顶层处理：确保 block 元素和文本节点之间正确分隔
+    const blockTags = new Set(['div', 'p', 'ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'pre']);
+    function isBlockElement(node) {
+        return node.nodeType === Node.ELEMENT_NODE && blockTags.has(node.tagName.toLowerCase());
+    }
+
+    const children = Array.from(tempDiv.childNodes);
+    let md = '';
+    let lastWasBlock = false;
+
+    for (let i = 0; i < children.length; i++) {
+        const node = children[i];
+        let text = processNode(node);
+
+        if (!text.trim()) continue;
+
+        const isBlock = isBlockElement(node);
+
+        // 如果前面有内容，且当前是 block 元素或前一个是 block 元素，添加段间距
+        if (md && (isBlock || lastWasBlock)) {
+            md += '\n\n';
+        }
+
+        md += text;
+        lastWasBlock = isBlock;
+    }
 
     // 解码 HTML 实体
     const entities = {
