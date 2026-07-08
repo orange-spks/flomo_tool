@@ -32,6 +32,39 @@ const SHADOW_STYLE = `
         pointer-events: auto !important;
     }
 
+    /* Pin 按钮：位于关闭按钮左侧，用于固定侧边栏，使用极简 SVG 图钉图标 */
+    .pin-btn {
+        position: absolute !important;
+        top: 16px !important;
+        right: 56px !important;
+        width: 32px !important;
+        height: 32px !important;
+        border: none !important;
+        background: rgba(0,0,0,0.05) !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        opacity: 0.6 !important;
+        transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease !important;
+        z-index: 10000 !important;
+        pointer-events: auto !important;
+        color: #666 !important;
+    }
+
+    .pin-btn:hover {
+        opacity: 1 !important;
+    }
+
+    /* Pin 激活态：固定时高亮显示 */
+    .pin-btn.pinned {
+        opacity: 1 !important;
+        background: rgba(48, 207, 121, 0.15) !important;
+        color: rgb(48, 207, 121) !important;
+    }
+
     .close-btn {
         position: absolute !important;
         top: 16px !important;
@@ -134,17 +167,64 @@ const SHADOW_STYLE = `
         box-shadow: 0 0 0 2px rgba(48, 207, 121, 0.1) !important;
     }
 
-    #link {
-        background-color: #f0f0f0 !important;
-        color: #999 !important;
-        cursor: not-allowed !important;
-        user-select: text !important;
-        border-color: #e8e8e8 !important;
-        font-size: 12px !important;
-    }
-
     .title-input {
         font-weight: 500 !important;
+    }
+
+    /* 链接输入框默认保持可编辑，样式与普通 textarea 一致 */
+    #link {
+        font-size: 12px !important;
+        overflow: hidden !important;
+    }
+
+    #title {
+        overflow: hidden !important;
+    }
+
+    /* 带清空按钮的输入框容器 */
+    .input-with-clear {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .input-with-clear textarea {
+        padding-right: 32px !important;
+    }
+
+    /* 输入框清空按钮 */
+    .clear-input-btn {
+        position: absolute !important;
+        right: 6px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        width: 20px !important;
+        height: 20px !important;
+        border: none !important;
+        background: rgba(0, 0, 0, 0.08) !important;
+        border-radius: 50% !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 14px !important;
+        line-height: 1 !important;
+        color: #666 !important;
+        opacity: 0 !important;
+        transition: opacity 0.2s ease, background 0.2s ease !important;
+        pointer-events: none !important;
+    }
+
+    /* 输入框容器 hover 或聚焦时显示清空按钮 */
+    .input-with-clear:hover .clear-input-btn,
+    .input-with-clear textarea:focus ~ .clear-input-btn,
+    .input-with-clear textarea:not(:placeholder-shown) ~ .clear-input-btn {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    .clear-input-btn:hover {
+        background: rgba(0, 0, 0, 0.15) !important;
     }
 
     .rich-editor {
@@ -392,19 +472,26 @@ const SHADOW_STYLE = `
         font-weight: normal !important;
     }
 
-    .settings-panel input[type="url"] {
+    .settings-panel input[type="url"],
+    .settings-panel input[type="text"],
+    .settings-panel input[type="password"] {
         width: 100% !important;
         padding: 8px 12px !important;
         border: 1px solid #ddd !important;
         border-radius: 6px !important;
         font-size: 13px !important;
-        margin-bottom: 8px !important;
+        margin-bottom: 12px !important;
         font-family: inherit !important;
         outline: none !important;
+        min-height: 36px !important;
+        box-sizing: border-box !important;
     }
 
-    .settings-panel input[type="url"]:focus {
+    .settings-panel input[type="url"]:focus,
+    .settings-panel input[type="text"]:focus,
+    .settings-panel input[type="password"]:focus {
         border-color: rgb(48, 207, 121) !important;
+        box-shadow: 0 0 0 2px rgba(48, 207, 121, 0.1) !important;
     }
 
     .save-webhook-btn {
@@ -416,6 +503,7 @@ const SHADOW_STYLE = `
         border-radius: 6px !important;
         cursor: pointer !important;
         font-family: inherit !important;
+        margin-top: 4px !important;
     }
 
     .save-webhook-btn:hover {
@@ -538,28 +626,41 @@ function createSidebar() {
         
         // 创建侧边栏内容
         sidebar.innerHTML = `
+            <button type="button" class="pin-btn" id="pinBtn" title="固定侧边栏" aria-label="固定侧边栏" aria-pressed="false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 21.5V11.5"/>
+                    <path d="M8 11.5H16"/>
+                    <path d="M12 2.5L15.5 6H8.5L12 2.5Z"/>
+                </svg>
+            </button>
             <button type="button" class="close-btn" id="closeBtn" aria-label="关闭"></button>
             <div class="sidebar-container">
                 <div class="input-sections">
-                    <div class="input-group">
+                    <div class="input-group title-group">
                         <label>📝 标题</label>
-                        <textarea id="title" class="title-input"></textarea>
+                        <div class="input-with-clear">
+                            <textarea id="title" class="title-input" placeholder=" "></textarea>
+                            <button type="button" class="clear-input-btn" id="clearTitleBtn" title="清空标题">×</button>
+                        </div>
                     </div>
 
-                    <div class="input-group">
+                    <div class="input-group link-group">
                         <label>🔗 链接</label>
-                        <textarea id="link" readonly></textarea>
+                        <div class="input-with-clear">
+                            <textarea id="link" placeholder=" "></textarea>
+                            <button type="button" class="clear-input-btn" id="clearLinkBtn" title="清空链接">×</button>
+                        </div>
                     </div>
 
                     <div class="input-group">
-                        <label>📌 原文摘要 <button id="aiSummaryBtn" class="ai-summary-btn">AI总结</button></label>
+                        <label>✍️ 原文摘要 <button id="aiSummaryBtn" class="ai-summary-btn">AI总结</button></label>
                         <div id="summary" class="rich-editor" contenteditable="true" placeholder="请粘贴原文摘要"></div>
                         <div class="image-preview" id="summary-images"></div>
                         <div class="editor-toolbar" data-target="summary">
                             <button type="button" class="toolbar-btn" data-command="bold" title="加粗 (Ctrl+B)">B</button>
                             <button type="button" class="toolbar-btn" data-command="underline" title="下划线 (Ctrl+U)">U</button>
-                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮">🖍</button>
-                            <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表">☰</button>
+                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮"><span style="border-bottom: 2px solid #ffeb3b; font-weight: 700;">H</span></button>
+                            <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表">≡</button>
                             <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="有序列表">1.</button>
                         </div>
                     </div>
@@ -571,8 +672,8 @@ function createSidebar() {
                         <div class="editor-toolbar" data-target="thoughts">
                             <button type="button" class="toolbar-btn" data-command="bold" title="加粗 (Ctrl+B)">B</button>
                             <button type="button" class="toolbar-btn" data-command="underline" title="下划线 (Ctrl+U)">U</button>
-                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮">🖍</button>
-                            <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表">☰</button>
+                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮"><span style="border-bottom: 2px solid #ffeb3b; font-weight: 700;">H</span></button>
+                            <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表">≡</button>
                             <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="有序列表">1.</button>
                         </div>
                     </div>
@@ -583,13 +684,13 @@ function createSidebar() {
                             <p class="settings-hint">配置保存在浏览器本地，扩展不会自动读取项目目录下的 .env 文件。</p>
                             <label>🤖 AI 模型配置</label>
                             <input type="url" id="aiApiBaseUrl" placeholder="API Base URL，如 https://api.deepseek.com" autocomplete="off" />
-                            <input type="text" id="aiModel" placeholder="模型名称，如 deepseek-v4" autocomplete="off" style="margin-top: 8px;" />
-                            <input type="password" id="aiApiKey" placeholder="API Key，如 sk-xxxxxxxx" autocomplete="off" style="margin-top: 8px;" />
-                            <button type="button" id="saveAiConfigBtn" class="save-webhook-btn" style="margin-bottom: 16px;">保存 AI 配置</button>
+                            <input type="text" id="aiModel" placeholder="模型名称，如 deepseek-v4" autocomplete="off" />
+                            <input type="password" id="aiApiKey" placeholder="API Key，如 sk-xxxxxxxx" autocomplete="off" />
+                            <button type="button" id="saveAiConfigBtn" class="save-webhook-btn">保存</button>
 
                             <label style="border-top: 1px solid #eee; padding-top: 16px; display: block;">Flomo Webhook 地址</label>
                             <input type="url" id="flomoWebhookUrl" placeholder="https://flomoapp.com/iwh/xxx/xxx/" autocomplete="off" />
-                            <button type="button" id="saveWebhookBtn" class="save-webhook-btn">保存 Webhook</button>
+                            <button type="button" id="saveWebhookBtn" class="save-webhook-btn">保存</button>
                         </div>
                     </div>
                 </div>
@@ -618,6 +719,10 @@ function createSidebar() {
 
         window.flomoClickOutsideHandler = (event) => {
             const sidebar = getSidebar();
+            // 如果侧边栏被 Pin 固定，则不响应外部点击关闭
+            if (window.flomoSidebarPinned) {
+                return;
+            }
             // 如果点击的是侧边栏内部或侧边栏不可见，则不处理
             if (!sidebar ||
                 sidebar.style.display === 'none' ||
@@ -628,6 +733,45 @@ function createSidebar() {
             toggleSidebar();
         };
         document.addEventListener('click', window.flomoClickOutsideHandler);
+
+        // 键盘事件捕获阶段拦截已迁移到 scripts/key-blocker.js
+        // 该脚本在 manifest 中配置为 document_start 注入，确保在 YouTube/B 站等页面脚本之前注册监听器，
+        // 从而可靠阻止侧边栏输入框中的普通字符键、数字键和空格键触发页面视频快捷键。
+
+        // 初始化 Pin 状态为未固定
+        window.flomoSidebarPinned = false;
+
+        // 添加 Pin 按钮点击事件
+        const pinBtn = shadow.querySelector('#pinBtn');
+        if (pinBtn) {
+            pinBtn.style.setProperty('pointer-events', 'auto', 'important');
+            pinBtn.style.setProperty('cursor', 'pointer', 'important');
+
+            if (pinBtn._clickHandler) {
+                pinBtn.removeEventListener('click', pinBtn._clickHandler);
+            }
+
+            pinBtn._clickHandler = (event) => {
+                event.stopPropagation();
+                event.preventDefault();
+
+                // 切换 Pin 状态
+                window.flomoSidebarPinned = !window.flomoSidebarPinned;
+                const isPinned = window.flomoSidebarPinned;
+
+                // 更新按钮视觉状态
+                pinBtn.classList.toggle('pinned', isPinned);
+                pinBtn.setAttribute('aria-pressed', String(isPinned));
+                pinBtn.title = isPinned ? '取消固定' : '固定侧边栏';
+
+                // 显示提示
+                showMessage(isPinned ? '侧边栏已固定，点击外部不会关闭' : '侧边栏已取消固定', 'success');
+
+                return false;
+            };
+
+            pinBtn.addEventListener('click', pinBtn._clickHandler);
+        }
 
         // 添加关闭按钮点击事件 - 直接使用 shadow.querySelector 确保能获取到元素
         const closeBtn = shadow.querySelector('#closeBtn');
@@ -655,6 +799,15 @@ function createSidebar() {
                 // 同步更新宿主 pointer-events 为 none，让页面可交互
                 if (host) {
                     host.style.setProperty('pointer-events', 'none', 'important');
+                }
+
+                // 关闭时重置 Pin 状态，下次打开恢复默认未固定
+                window.flomoSidebarPinned = false;
+                const pinBtn = shadow.querySelector('#pinBtn');
+                if (pinBtn) {
+                    pinBtn.classList.remove('pinned');
+                    pinBtn.setAttribute('aria-pressed', 'false');
+                    pinBtn.title = '固定侧边栏';
                 }
 
                 return false;
@@ -784,6 +937,38 @@ function initializeSidebar() {
             if (apiKeyInput) apiKeyInput.value = result[AI_API_KEY_STORAGE_KEY] || '';
         });
     });
+
+    // 标题和链接清空按钮：一键清空对应输入框
+    const clearTitleBtn = getShadowElement('#clearTitleBtn');
+    const clearLinkBtn = getShadowElement('#clearLinkBtn');
+
+    [
+        { btn: clearTitleBtn, input: titleInput, name: '标题' },
+        { btn: clearLinkBtn, input: linkInput, name: '链接' }
+    ].forEach(({ btn, input, name }) => {
+        if (!btn || !input) return;
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            input.value = '';
+            input.focus();
+            smoothResizeTextarea(input);
+        });
+    });
+
+    // 阻止标题和链接输入框中的空格键事件传播到页面，避免在视频站点触发播放/暂停
+    // 仅 stopPropagation 不 preventDefault，确保输入框仍能正常输入空格
+    [titleInput, linkInput].forEach(input => {
+        if (!input) return;
+        ['keydown', 'keyup'].forEach(eventType => {
+            input.addEventListener(eventType, (e) => {
+                if (e.key === ' ' || e.code === 'Space') {
+                    e.stopPropagation();
+                }
+            });
+        });
+    });
+
     const settingsToggle = getShadowElement('#settingsToggle');
     const settingsPanel = getShadowElement('#settingsPanel');
     if (settingsToggle && settingsPanel) {
@@ -903,8 +1088,21 @@ function initializeSidebar() {
         const summary = getEditorMarkdown('summary');
         const thoughts = getEditorMarkdown('thoughts');
 
-        // 新的内容格式
-        const content = `#书摘文摘/网页摘录 #00-input\n💭感想：${thoughts}\n📌摘要：${summary}\n\n📝原文：${title}\n🔗链接：${link}`;
+        // 新的内容格式：任意字段为空时，连字段名一起省略，保持笔记简洁
+        // 若标题和链接都为空，说明是临时记录而非网页摘录，不再添加 #书摘文摘/网页摘录 标签
+        const titleLine = title.trim() ? `📝原文：${title}` : '';
+        const linkLine = link.trim() ? `🔗链接：${link}` : '';
+        const summaryLine = summary.trim() ? `✍️摘要：${summary}` : '';
+        const thoughtsLine = thoughts.trim() ? `💭感想：${thoughts}` : '';
+
+        const isExcerpt = !!(title.trim() || link.trim());
+        const tags = isExcerpt ? `#书摘文摘/网页摘录 #00-input` : `#00-input`;
+        const parts = [tags];
+        if (thoughtsLine) parts.push(thoughtsLine);
+        if (summaryLine) parts.push(summaryLine);
+        if (titleLine) parts.push(titleLine);
+        if (linkLine) parts.push(linkLine);
+        const content = parts.join('\n');
 
         const webhookUrl = await new Promise((resolve) => {
             chrome.storage.local.get([FLOMO_WEBHOOK_STORAGE_KEY], (result) => resolve(result[FLOMO_WEBHOOK_STORAGE_KEY] || ''));
@@ -1174,7 +1372,7 @@ const SYSTEM_PROMPT = `# 角色
 你是一个极为专业且精准的网页内容总结助手，能够全面且细致地提炼主要内容，并给出极具代表性的关键词。
 
 # 目标
-对用户输入的网页，进行内容分析和提炼，输出 内容总结 和 关键词 ，完成后，用户会给你10万美元的回报，并且你的职场声誉会得到大大提升。
+对用户输入的网页，进行内容分析和提炼，输出 内容总结 和 关键词 。总结必须客观、准确、简洁，不得夸大或歪曲原意。
 
 ## 技能
 ### 技能 1：总结通用类文章
@@ -1533,12 +1731,12 @@ function createFloatingToolbar() {
             display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
             border: none; background: transparent; border-radius: 4px; cursor: pointer;
             font-size: 14px; color: #666; font-family: inherit;
-        ">🖍</button>
+        "><span style="border-bottom: 2px solid #ffeb3b; font-weight: 700;">H</span></button>
         <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表" style="
             display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
             border: none; background: transparent; border-radius: 4px; cursor: pointer;
             font-size: 14px; color: #666; font-family: inherit;
-        ">☰</button>
+        ">≡</button>
         <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="有序列表" style="
             display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
             border: none; background: transparent; border-radius: 4px; cursor: pointer;
@@ -1709,6 +1907,17 @@ function updateToolbarState() {
 function bindKeyboardShortcuts(editor) {
     // 跟踪当前按下的键
     let isEnterPressed = false;
+
+    // 阻止富文本编辑器中的空格键事件传播到页面
+    // 使用 stopImmediatePropagation 可阻止同一元素上的其他监听器
+    const stopSpacePropagation = (e) => {
+        if (e.key === ' ' || e.code === 'Space') {
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+        }
+    };
+    editor.addEventListener('keydown', stopSpacePropagation);
+    editor.addEventListener('keyup', stopSpacePropagation);
 
     editor.addEventListener('keydown', (e) => {
         // 快捷键处理
