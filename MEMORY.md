@@ -88,6 +88,24 @@ if (!value.trim()) {
 - 模型 ID 必须带厂商前缀：`deepseek-ai/DeepSeek-V3`，不能简写
 - 和 DeepSeek/Kimi/Qwen 一样使用 `Authorization: Bearer <key>`
 
+### 6. API Key 绝不能硬编码，且删除代码不等于删除泄露
+**问题**：v0.1.2/v0.1.3 期间把 `const DEEPSEEK_API_KEY = 'sk-...'` 直接写进 `scripts/content.js`，虽然后续版本改成 `chrome.storage.local` 用户配置，但 git 历史里一直留着这个 key。仓库设为 public 后 GitHub secret scanning 立刻告警。
+
+**正确做法**：
+1. 任何 API Key 都通过用户配置或环境变量传入，代码里只保留占位符或 storage key 名。
+2. 公开仓库前先用工具自查历史：
+   ```bash
+   git log --all --full-history -p | grep -iE 'sk-[a-z0-9]{10,}'
+   ```
+   或安装 `git-secrets`、`truffleHog`。
+3. 一旦泄露，立即执行：
+   - 撤销/轮换受影响的 key（止损第一步）
+   - 用 `git-filter-repo` 清理历史：`git filter-repo --replace-text <替换规则文件>`
+   - 强制推送所有分支：`git push --force origin --all`
+   - 在 GitHub Security 页面确认告警消除
+
+**检查清单**：提交前永远不要用 `git add -A` 把含 `.env`、测试脚本、硬编码 key 的文件一起提交；公开仓库前必须做一次 secret 扫描。
+
 ## 关键技术方案（供参考）
 
 ### Shadow DOM 事件处理
