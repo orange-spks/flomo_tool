@@ -76,6 +76,8 @@
 #### 3.1.3 布局结构
 ```
 .flomo-sidebar (固定 400px 宽度，100vh 高度)
+├── .flomo-link-btn (打开 flomo 网站，位于最右侧按钮左侧)
+├── .pin-btn (固定侧边栏按钮)
 ├── .close-btn (关闭按钮，X 图标)
 └── .sidebar-container
     ├── .input-sections (可滚动区域)
@@ -94,14 +96,14 @@
 ### 3.2 富文本编辑器
 
 #### 3.2.1 支持的格式
-| 格式 | 快捷键 | 工具栏 | HTML 标签 | Markdown 转换 |
-|------|--------|--------|-----------|---------------|
-| 加粗 | Ctrl+B | B | `<b>`/`<strong>` | `**text**` |
-| 下划线 | Ctrl+U | U | `<u>` | `<u>text</u>` |
-| 高亮 | - | 🖍 | `<mark>`/`<span style="background-color">` | `==text==` |
-| 无序列表 | - | ☰ | `<ul>`/`<li>` | `- item` |
-| 有序列表 | - | 1. | `<ol>`/`<li>` | `1. item` |
-| 斜体 | Ctrl+I | - | `<i>`/`<em>` | `*text*` |
+| 格式 | 快捷键 | 工具栏 | HTML 标签 | Markdown 转换（Flomo 兼容） | Flomo 支持 |
+|------|--------|--------|-----------|---------------------------|------------|
+| 加粗 | Ctrl+B | B | `<b>`/`<strong>` | `**text**` | ✅ |
+| 下划线 | - | U（已禁用） | `<u>` / `<span style="text-decoration: underline">` | - | ❌ Flomo 不支持 |
+| 高亮 | - | H（已禁用） | `<mark>` / `<span style="background-color">` | - | ❌ Flomo 不支持 |
+| 无序列表 | - | ≡ | `<ul>`/`<li>` | `- item` | ✅ |
+| 有序列表 | - | 1. | `<ol>`/`<li>` | `1. item` | ✅ |
+| 斜体 | Ctrl+I | - | `<i>`/`<em>` | `*text*` | ❌ Flomo 不支持 |
 
 #### 3.2.2 工具栏设计
 - **固定工具栏**: 位于每个编辑器底部，始终可见
