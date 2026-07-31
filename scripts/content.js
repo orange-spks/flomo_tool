@@ -874,6 +874,7 @@ function createSidebar() {
 
             flomoLinkBtn._clickHandler = (event) => {
                 event.stopPropagation();
+                event.preventDefault();
                 // 通过 window.open 在新标签页打开 flomo，避免 Shadow DOM 内 a 标签的潜在拦截问题
                 window.open('https://v.flomoapp.com/mine/', '_blank', 'noopener,noreferrer');
                 return false;
