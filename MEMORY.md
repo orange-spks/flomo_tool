@@ -35,7 +35,7 @@
 - ✅ **配置删除**：已支持清空输入框即删除 storage 中的旧配置
 - ✅ **辅助阅读功能**：已在 v0.1.3 彻底清理
 - ✅ **HTML 转 Markdown 段落分隔**：已修复（v0.1.3+）
-- ✅ **高亮/下划线 Flomo 渲染**：已 fallback 到标准 Markdown（v0.1.3+）
+- ✅ **高亮/下划线 Flomo 渲染**：已 fallback 到标准 Markdown（v0.1.3+），并增强对 `span style="text-decoration: underline"` 及多种颜色写法的识别；因 Flomo 不支持原始样式，前端对应按钮已禁用
 - ⏳ **HTML 转 Markdown 维护**：建议未来引入 `turndown` 库（当前自定义实现已稳定）
 - ⏳ **图片传递可靠性**：前端入口已隐藏，后端代码保留，待 Flomo 支持
 
@@ -79,9 +79,19 @@ if (!value.trim()) {
 
 **根因**：Flomo 的 Markdown 解析器不支持非标准语法和内联 HTML。
 
-**正确做法**：在 htmlToMarkdown 中 fallback 到标准 Markdown：
-- 高亮 → `**text**`（加粗）
-- 下划线 → `*text*`（斜体）
+**正确做法**：
+1. 在 htmlToMarkdown 中 fallback 到 Flomo 实际支持的语法，并覆盖 contentEditable 实际生成的多种 HTML：
+   - 高亮 → `**text**`（加粗）
+     - 支持 `<mark>`、`<span style="background-color: #ffeb3b">`、`<span style="background-color: rgb(255, 235, 59)">`、`<font>` 等
+   - 下划线 → `**text**`（加粗）
+     - Flomo 不支持 `*斜体*` 和 `__下划线__`，因此不能 fallback 到斜体
+     - 支持 `<u>`、`<span style="text-decoration: underline">` 等
+2. 由于高亮/下划线在 Flomo 端无法保留原始视觉样式（都变成加粗），前端工具栏的对应按钮已禁用，避免用户误以为格式能被同步。
+
+**检查清单**：
+1. htmlToMarkdown 遇到 `span`/`font` 标签时，必须同时检查 `backgroundColor` 和 `textDecoration` 属性，不能只看 tagName。
+2. 任何 fallback 策略必须以 Flomo 实测支持的 Markdown 为准，不能假设标准 Markdown 全支持。
+3. 如果某个格式最终无法被目标平台正确渲染，应禁用前端入口并明确提示用户，而不是保留一个无效的按钮。
 
 ### 5. 硅基流动配置要点
 - Base URL: `https://api.siliconflow.cn/v1`（必须带 `/v1`）

@@ -32,6 +32,35 @@ const SHADOW_STYLE = `
         pointer-events: auto !important;
     }
 
+    /* Flomo 跳转按钮：位于 Pin 按钮左侧，点击在新标签页打开 flomo 网站 */
+    .flomo-link-btn {
+        position: absolute !important;
+        top: 16px !important;
+        right: 96px !important;
+        width: 32px !important;
+        height: 32px !important;
+        border: none !important;
+        background: rgba(0,0,0,0.05) !important;
+        border-radius: 4px !important;
+        cursor: pointer !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        opacity: 0.6 !important;
+        transition: opacity 0.2s ease, background 0.2s ease !important;
+        z-index: 10000 !important;
+        pointer-events: auto !important;
+        color: #666 !important;
+        text-decoration: none !important;
+    }
+
+    .flomo-link-btn:hover {
+        opacity: 1 !important;
+        background: rgba(48, 207, 121, 0.1) !important;
+        color: rgb(39, 179, 104) !important;
+    }
+
     /* Pin 按钮：位于关闭按钮左侧，用于固定侧边栏，使用极简 SVG 图钉图标 */
     .pin-btn {
         position: absolute !important;
@@ -308,6 +337,16 @@ const SHADOW_STYLE = `
     .toolbar-btn:hover {
         background: #e8e8e8 !important;
         color: #333 !important;
+    }
+
+    .toolbar-btn:disabled {
+        opacity: 0.4 !important;
+        cursor: not-allowed !important;
+        color: #999 !important;
+    }
+
+    .toolbar-btn:disabled:hover {
+        background: transparent !important;
     }
 
     .toolbar-btn.active {
@@ -626,6 +665,13 @@ function createSidebar() {
         
         // 创建侧边栏内容
         sidebar.innerHTML = `
+            <a href="https://v.flomoapp.com/mine/" target="_blank" rel="noopener noreferrer" class="flomo-link-btn" id="flomoLinkBtn" title="在 flomo 中查看">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                    <polyline points="15 3 21 3 21 9"/>
+                    <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+            </a>
             <button type="button" class="pin-btn" id="pinBtn" title="固定侧边栏" aria-label="固定侧边栏" aria-pressed="false">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M12 21.5V11.5"/>
@@ -658,8 +704,8 @@ function createSidebar() {
                         <div class="image-preview" id="summary-images"></div>
                         <div class="editor-toolbar" data-target="summary">
                             <button type="button" class="toolbar-btn" data-command="bold" title="加粗 (Ctrl+B)">B</button>
-                            <button type="button" class="toolbar-btn" data-command="underline" title="下划线 (Ctrl+U)">U</button>
-                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮"><span style="border-bottom: 2px solid #ffeb3b; font-weight: 700;">H</span></button>
+                            <button type="button" class="toolbar-btn" data-command="underline" title="Flomo 不支持下划线，已禁用" disabled>U</button>
+                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="Flomo 不支持高亮，已禁用" disabled><span style="border-bottom: 2px solid #ffeb3b; font-weight: 700;">H</span></button>
                             <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表">≡</button>
                             <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="有序列表">1.</button>
                         </div>
@@ -671,8 +717,8 @@ function createSidebar() {
                         <div class="image-preview" id="thoughts-images"></div>
                         <div class="editor-toolbar" data-target="thoughts">
                             <button type="button" class="toolbar-btn" data-command="bold" title="加粗 (Ctrl+B)">B</button>
-                            <button type="button" class="toolbar-btn" data-command="underline" title="下划线 (Ctrl+U)">U</button>
-                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮"><span style="border-bottom: 2px solid #ffeb3b; font-weight: 700;">H</span></button>
+                            <button type="button" class="toolbar-btn" data-command="underline" title="Flomo 不支持下划线，已禁用" disabled>U</button>
+                            <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="Flomo 不支持高亮，已禁用" disabled><span style="border-bottom: 2px solid #ffeb3b; font-weight: 700;">H</span></button>
                             <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表">≡</button>
                             <button type="button" class="toolbar-btn" data-command="insertOrderedList" title="有序列表">1.</button>
                         </div>
@@ -814,6 +860,26 @@ function createSidebar() {
             };
 
             closeBtn.addEventListener('click', closeBtn._clickHandler);
+        }
+
+        // 添加 Flomo 跳转按钮点击事件 - 在新标签页打开 flomo 网站
+        const flomoLinkBtn = shadow.querySelector('#flomoLinkBtn');
+        if (flomoLinkBtn) {
+            flomoLinkBtn.style.setProperty('pointer-events', 'auto', 'important');
+            flomoLinkBtn.style.setProperty('cursor', 'pointer', 'important');
+
+            if (flomoLinkBtn._clickHandler) {
+                flomoLinkBtn.removeEventListener('click', flomoLinkBtn._clickHandler);
+            }
+
+            flomoLinkBtn._clickHandler = (event) => {
+                event.stopPropagation();
+                // 通过 window.open 在新标签页打开 flomo，避免 Shadow DOM 内 a 标签的潜在拦截问题
+                window.open('https://v.flomoapp.com/mine/', '_blank', 'noopener,noreferrer');
+                return false;
+            };
+
+            flomoLinkBtn.addEventListener('click', flomoLinkBtn._clickHandler);
         }
 
         // 阻止侧边栏内的滚轮事件冒泡到页面
@@ -1722,16 +1788,16 @@ function createFloatingToolbar() {
             border: none; background: transparent; border-radius: 4px; cursor: pointer;
             font-size: 14px; color: #666; font-weight: 700; font-family: inherit;
         ">B</button>
-        <button type="button" class="toolbar-btn" data-command="underline" title="下划线 (Ctrl+U)" style="
+        <button type="button" class="toolbar-btn" data-command="underline" title="Flomo 不支持下划线，已禁用" disabled style="
             display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
-            border: none; background: transparent; border-radius: 4px; cursor: pointer;
-            font-size: 14px; color: #666; text-decoration: underline; font-family: inherit;
+            border: none; background: transparent; border-radius: 4px; cursor: not-allowed;
+            font-size: 14px; color: #999; text-decoration: underline; font-family: inherit;
         ">U</button>
-        <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="高亮" style="
+        <button type="button" class="toolbar-btn" data-command="hiliteColor" data-value="#ffeb3b" title="Flomo 不支持高亮，已禁用" disabled style="
             display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
-            border: none; background: transparent; border-radius: 4px; cursor: pointer;
-            font-size: 14px; color: #666; font-family: inherit;
-        "><span style="border-bottom: 2px solid #ffeb3b; font-weight: 700;">H</span></button>
+            border: none; background: transparent; border-radius: 4px; cursor: not-allowed;
+            font-size: 14px; color: #999; font-family: inherit;
+        "><span style="border-bottom: 2px solid #ccc; font-weight: 700;">H</span></button>
         <button type="button" class="toolbar-btn" data-command="insertUnorderedList" title="无序列表" style="
             display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
             border: none; background: transparent; border-radius: 4px; cursor: pointer;
@@ -1926,11 +1992,6 @@ function bindKeyboardShortcuts(editor) {
                 case 'b':
                     e.preventDefault();
                     execCommand('bold');
-                    updateToolbarState();
-                    return;
-                case 'u':
-                    e.preventDefault();
-                    execCommand('underline');
                     updateToolbarState();
                     return;
                 case 'i':
@@ -2173,6 +2234,20 @@ function htmlToMarkdown(html) {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html.trim();
 
+    // 判断颜色是否是高亮黄（处理 rgb/rgba/hex/颜色名等多种写法）
+    function isHighlightColor(color) {
+        if (!color) return false;
+        const normalized = color.toLowerCase().replace(/\s/g, '');
+        const yellowValues = new Set([
+            '#ffeb3b',
+            'rgb(255,235,59)',
+            'rgba(255,235,59,1)',
+            'rgba(255,235,59)',
+            'yellow'
+        ]);
+        return yellowValues.has(normalized);
+    }
+
     // 递归处理节点
     function processNode(node) {
         // 文本节点
@@ -2193,20 +2268,29 @@ function htmlToMarkdown(html) {
                 case 'em':
                     return '*' + childContent.trim() + '*';
                 case 'u':
-                    // Flomo 不支持 <u> HTML 标签，fallback 到斜体
-                    return '*' + childContent.trim() + '*';
+                    // Flomo 不支持 <u> HTML 标签，且不支持 *斜体*，fallback 到加粗
+                    return '**' + childContent.trim() + '**';
                 case 'mark':
                     // Flomo 不支持 ==高亮== 语法，fallback 到加粗
                     return '**' + childContent.trim() + '**';
                 case 'span':
-                    // 检查是否是高亮样式
+                case 'font': {
+                    // 检查是否是高亮样式（contentEditable 的 hiliteColor 可能生成 span 或 font 标签）
                     const style = node.getAttribute('style') || '';
                     const bgColor = node.style.backgroundColor;
-                    if (bgColor === 'rgb(255, 235, 59)' || bgColor === '#ffeb3b' || bgColor === 'yellow') {
+                    if (isHighlightColor(bgColor) || isHighlightColor(style)) {
                         // Flomo 不支持 ==高亮== 语法，fallback 到加粗
                         return '**' + childContent.trim() + '**';
                     }
+                    // 下划线有时以 span + text-decoration: underline 形式出现
+                    const textDecoration = node.style.textDecoration || '';
+                    const normalizedStyle = style.replace(/\s/g, '').toLowerCase();
+                    if (textDecoration.includes('underline') || normalizedStyle.includes('text-decoration:underline') || normalizedStyle.includes('text-decoration-line:underline')) {
+                        // Flomo 不支持 <u> HTML 标签，且不支持 *斜体*，fallback 到加粗
+                        return '**' + childContent.trim() + '**';
+                    }
                     return childContent;
+                }
                 case 'img':
                     const src = node.getAttribute('src') || '';
                     return '![图片](' + src + ')';
