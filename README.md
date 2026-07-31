@@ -1,86 +1,64 @@
 # Flomo Clipper
 
-一个简单好用的 Chrome 扩展，帮助你快速将网页内容同步到 Flomo。
+一键将网页内容同步到 Flomo 的 Chrome 浏览器扩展。
 
-## 功能特点
+## 功能特性
 
-- 🚀 一键唤起/收起侧边栏
-- 📝 自动获取页面标题和链接
-- 📌 支持复制原文摘要
-- 💭 添加个人感想
-- 🔄 一键同步到 Flomo
+- 🚀 **一键唤起侧边栏**：点击扩展图标，在当前页面右侧弹出编辑面板
+- 📝 **自动获取页面信息**：自动提取当前页面标题和链接
+- ✨ **富文本编辑**：支持加粗、高亮、无序/有序列表、下划线等格式
+- 🤖 **AI 自动总结**：支持 DeepSeek、硅基流动、Kimi、Qwen 等任意 OpenAI 兼容格式平台
+- 🖼️ **图片处理**：编辑器支持图片展示（粘贴上传入口当前隐藏，等待 Flomo 支持）
+- 🔒 **配置本地存储**：Webhook 地址和 API Key 均保存在浏览器本地，不上传服务器
 
 ## 安装方法
 
 1. 下载本项目代码
-2. 打开 Chrome 浏览器，进入扩展程序页面（chrome://extensions/）
-3. 开启右上角的"开发者模式"
-4. 点击"加载已解压的扩展程序"
-5. 选择项目文件夹即可
+2. 打开 Chrome 扩展管理页面（`chrome://extensions/`）
+3. 开启右上角"开发者模式"
+4. 点击"加载已解压的扩展程序"，选择本项目根目录
 
-## 使用说明
+## 配置说明
 
-1. 在任意网页点击工具栏中的 Flomo Clipper 图标
-2. 在右侧弹出的侧边栏中：
-   - 标题和链接会自动填充
-   - 可以复制粘贴原文摘要
-   - 可以输入个人感想
-3. 点击"提交到 Flomo"按钮即可同步内容
+### 1. Flomo Webhook 地址
 
-### 使用限制
-- 插件在 Flomo 的编辑页面不可用
-- 仅支持正常的网页内容
-- 不支持浏览器特殊页面（如新标签页）
+1. 打开 Flomo 网页版 → 设置 → API 与第三方应用
+2. 复制 "Incoming Webhook" 地址
+3. 在扩展侧边栏的「设置」中粘贴并保存
+
+### 2. AI 模型配置（用于 AI 总结功能）
+
+在扩展侧边栏的「设置」中配置：
+
+| 配置项 | 说明 | 示例 |
+|--------|------|------|
+| API Base URL | 大模型 API 的基础地址 | `https://api.deepseek.com` 或 `https://api.siliconflow.cn/v1` |
+| 模型名称 | 要调用的模型 ID | `deepseek-chat` / `deepseek-ai/DeepSeek-V3` |
+| API Key | 你的 API 密钥 | `sk-xxxxxxxx` |
+
+**各平台配置示例**：
+
+| 平台 | Base URL | 模型示例 |
+|------|----------|----------|
+| DeepSeek | `https://api.deepseek.com` | `deepseek-chat` |
+| 硅基流动 | `https://api.siliconflow.cn/v1` | `deepseek-ai/DeepSeek-V3` |
+| Kimi (Moonshot) | `https://api.moonshot.cn` | `moonshot-v1-8k` |
+| Qwen (DashScope) | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-turbo` |
+
+> 注意：硅基流动的模型 ID 必须带厂商前缀，如 `deepseek-ai/DeepSeek-V3`，不能简写为 `DeepSeek-V3`。
+
+若使用其他平台，需在 `chrome://extensions` → 扩展详情 → 站点访问权限中手动添加对应域名。
 
 ## 版本历史
 
-### 0.1.2
-- ✨ 新增AI总结功能，支持一键生成网页内容摘要
-- 🎨 优化输入框自适应效果，更流畅的高度调整
-- 💄 改进UI样式，优化按钮和输入框的视觉效果
-- 🐛 修复Edge浏览器下提交按钮可能不可见的问题
-- ⚡️ 优化输入框性能，添加平滑过渡效果
+### v0.1.3
+- 重构：彻底清理辅助阅读冗余代码
+- 升级：AI 总结支持通用 OpenAI 格式多模型配置
+- 调整：前端隐藏图片上传入口（Flomo Webhook 暂不支持 Base64 图片）
+- 修复：`htmlToMarkdown` 段落分隔问题，确保文本与块元素正确换行
+- 修复：高亮/下划线 fallback 到标准 Markdown（Flomo 不支持 `==高亮==` 和 `<u>` 标签）
 
-### 0.1.1
-- 🐛 修复页面刷新后需要点击两次的问题
-- ✨ 优化错误提示机制
-- 🔧 完善页面加载状态检查
-- 💄 优化提交内容格式
-
-### 0.1.0
-- ✨ 首次发布
-- 🎨 支持侧边栏展示
-- 📋 支持复制摘要和添加感想
-- 🔗 支持一键同步到 Flomo
-- 🛡️ 添加域名限制和错误处理
-
-## API配置
-
-### DeepSeek API
-本项目使用DeepSeek API来实现AI总结功能。
-
-- API文档：https://api-docs.deepseek.com/zh-cn/
-- 使用模型：deepseek-chat
-- API Key: 请在项目根目录下创建 `.env` 文件，添加以下内容：
-  ```
-  DEEPSEEK_API_KEY=your_api_key_here
-  ```
-  注意：不要直接在代码中硬编码API Key
-
-### Flomo API
-- API文档：https://v.flomoapp.com/mine?source=incoming_webhook
-- Webhook地址：https://flomoapp.com/iwh/ODcyOTY/8ed3b45bc8b3e51b9d02234f876acf51/
-
-## 技术栈
-
-- Chrome Extension API
-- JavaScript
-- CSS3
-
-## 贡献指南
-
-欢迎提交 Issue 和 Pull Request 来帮助改进这个项目。
-
-## 许可证
-
-MIT License 
+### v0.1.2
+- 修复提交后侧边栏无法关闭的问题
+- 修复 Flomo 内容格式渲染不完整的问题
+- 添加 `content_type: "markdown"` 参数确保格式正确解析

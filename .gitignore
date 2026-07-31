@@ -1,0 +1,20 @@
+# 环境变量与敏感信息
+.env
+
+# 操作系统与编辑器
+.DS_Store
+.claude/
+.vscode/
+.idea/
+
+# 每日记忆（项目本地记忆，不应提交）
+memory/
+
+# 临时测试脚本
+test_*.js
+
+# 依赖目录
+node_modules/
+
+# 日志
+*.log
