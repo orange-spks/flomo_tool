@@ -10,6 +10,9 @@
 # 每日记忆（项目本地记忆，不应提交）
 memory/
 
+# 构建产物（zip 通过 GitHub Release 分发，不进仓库）
+dist/
+
 # 临时测试脚本
 test_*.js
 

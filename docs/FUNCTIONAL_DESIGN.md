@@ -14,7 +14,7 @@
 - **核心价值**: 降低从网页到笔记的 friction，支持富文本编辑和 AI 辅助
 
 ### 1.2 版本信息
-- 当前版本: `0.1.3`
+- 当前版本: `0.1.4`
 - Manifest 版本: V3
 
 ---
@@ -27,12 +27,12 @@
 |--------|------|------|------|
 | P0 | 侧边栏唤起 | 点击扩展图标，在页面右侧弹出侧边栏 | ✅ 已实现 |
 | P0 | 自动填充 | 自动获取当前页面标题和链接 | ✅ 已实现 |
-| P0 | 富文本编辑 | 支持加粗、下划线、高亮、列表等格式 | ✅ 已实现 |
+| P0 | 富文本编辑 | 支持加粗、列表等格式（下划线/高亮因 Flomo 不支持已禁用） | ✅ 已实现 |
 | P0 | 图片上传 | 支持粘贴上传和点击上传，Base64 存储 | ✅ 已实现 |
 | P0 | Flomo 同步 | 通过 Webhook 将内容提交到 Flomo | ✅ 已实现 |
 | P1 | AI 总结 | 调用 DeepSeek API 自动生成网页摘要 | ✅ 已实现 |
-| P2 | 辅助阅读 | 逐段分析文章，标注句子类型（已停用） | ⚠️ 已注释 |
-| P2 | 多模型支持 | 支持 Ark/DeepSeek/智谱 GLM 切换 | ⚠️ 辅助阅读已停用 |
+| P2 | 辅助阅读 | 逐段分析文章，标注句子类型（已移除） | ❌ 已移除 |
+| P2 | 多模型支持 | AI 总结支持 DeepSeek/硅基流动/Kimi/Qwen 等 OpenAI 兼容平台 | ✅ 已实现 |
 
 ### 2.2 功能边界
 
@@ -176,14 +176,16 @@ FileReader 读取为 Base64 Data URL
 ### 3.5 Flomo 同步系统
 
 #### 3.5.1 数据格式
-```markdown
-#书摘文摘/网页摘录
-💭感想：[用户输入的感想]
-📌摘要：[用户输入的摘要]
 
-📝原文：《[页面标题]》
+```markdown
+#书摘文摘/网页摘录 #00-input
+💭感想：[用户输入的感想]
+✍️摘要：[用户输入的摘要]
+📝原文：[页面标题]
 🔗链接：[页面URL]
 ```
+
+> 当标题和链接都为空时，视为临时记录，不添加 `#书摘文摘/网页摘录` 标签，仅保留 `#00-input`。
 
 #### 3.5.2 Webhook 配置
 - **存储位置**: `chrome.storage.local`
@@ -201,9 +203,9 @@ FileReader 读取为 Base64 Data URL
 
 ---
 
-### 3.6 辅助阅读功能（已停用）
+### 3.6 辅助阅读功能（已移除）
 
-> ⚠️ 该功能在代码中已被注释，但架构完整，可供参考
+> ⚠️ 该功能已在 v0.1.3 中彻底移除，相关代码不再保留。本节仅作为历史设计参考。
 
 #### 3.6.1 设计目标
 对长文章进行逐段分析，标注句子类型（观点/事实/建议/疑问/其他），并给出段落总结。
@@ -235,8 +237,9 @@ FileReader 读取为 Base64 Data URL
 |------|------|
 | 标签页状态跟踪 | 记录已注入 content script 的标签页 |
 | 页面加载检测 | 监听 `onUpdated`，检查 `status === 'loading'` 重置状态 |
-| 脚本注入 | 动态注入 `content.js` 和 `sidebar.css` |
+| 脚本注入 | 动态注入 `content.js`（样式由 Shadow DOM 内联提供，不再向页面注入 `sidebar.css`，避免裸选择器污染宿主页面） |
 | 消息转发 | 接收 `toggleSidebar` 消息并转发给 content script |
+| 网络请求中转 | `proxyFetch`：代发 AI 总结、Flomo Webhook 等跨域请求（content script 的 fetch 会被页面 CSP/Service Worker 拦截，Service Worker 不受页面环境约束） |
 | 图标状态 | 在特殊页面显示警告徽章 |
 
 #### 3.7.2 注入状态管理
@@ -331,9 +334,11 @@ tabs.onRemoved → delete injectedTabs[tabId]
 ### 6.1 技术债务
 | 问题 | 影响 | 建议方案 |
 |------|------|----------|
-| ~~DeepSeek API Key 硬编码~~ | ~~安全风险~~ | ✅ 已改为用户配置存储在 Chrome Storage |
-| 辅助阅读功能完全注释 | 代码臃肿 | 拆分为独立文件或彻底移除 |
-| HTML 转 Markdown 逻辑复杂 | 维护困难 | 使用成熟库如 `turndown` |
+| ~~DeepSeek API Key 硬编码~~ | ~~安全风险~~ | ✅ 已改为用户配置存储在 Chrome Storage；打包脚本内置密钥扫描兜底（`build.ps1`，2026-11-04） |
+| ~~辅助阅读功能完全注释~~ | ~~代码臃肿~~ | ✅ 已在 v0.1.3 彻底移除 |
+| ~~手工打包发布~~ | ~~易漏打包/发旧版~~ | ✅ 已脚本化（`build.ps1`：校验 manifest → 密钥扫描 → 白名单收集 → 带版本号打 zip，2026-11-04） |
+| HTML 转 Markdown 逻辑复杂 | 维护困难，嵌套格式组合反复出 bug（2026-04、2026-05 两度返修） | 📋 方案已定型（2026-11-04）：迁移 `turndown`——下载 UMD 单文件随扩展打包（无需引入打包工具），manifest content_scripts 按序加载；flomo 特有规则（`<mark>`→加粗、`<u>`→斜体）用 `turndownService.addRule()` 实现，自研转换器数百行可缩至数十行；配套建 `tests/cases.html` 手工回归页覆盖格式组合（嵌套列表、加粗套高亮、空段落等） |
+| 富文本编辑依赖 `document.execCommand`（已废弃 API） | 理论上存在被浏览器移除的长期风险 | 📌 决策：不迁移（2026-11-04）。该 API 废弃多年但各浏览器实为"冻结但可用"（删除会让大量存量网站崩溃）；项目所需命令（加粗/斜体/下划线/列表）恰是其最稳定子集，自行操作 Range/Selection API 代码量翻数倍且引入跨浏览器选区兼容问题，维护成本不匹配。做法：所有调用收敛到统一封装函数 `execFormat()`，真被移除时只改一处 |
 | Shadow DOM 样式全部 `!important` | 难以覆盖 | 优化 CSS 架构 |
 
 ### 6.2 功能增强建议
@@ -354,15 +359,14 @@ flomo_tool/
 ├── README.md              # 用户文档
 ├── FUNCTIONAL_DESIGN.md   # 本文档
 ├── .env                   # 环境变量（Git 忽略）
-├── prompt_help_read.txt   # 辅助阅读 Prompt
-├── test_ark_api.js        # Ark API 测试脚本
 ├── scripts/
 │   ├── background.js      # Service Worker
 │   └── content.js         # 内容脚本（主要逻辑）
 ├── styles/
-│   └── sidebar.css        # 侧边栏样式（基础样式）
+│   └── sidebar.css        # 遗留文件，仅被未使用的 sidebar.html 引用（运行时样式在 Shadow DOM 内）
 ├── sidebar.html           # 侧边栏 HTML（备用，实际使用 Shadow DOM 动态创建）
 └── images/
+    ├── icon16.png
     ├── icon48.png
     └── icon128.png
 ```
@@ -373,16 +377,15 @@ flomo_tool/
 
 | 功能 | 文件 | 函数/位置 |
 |------|------|-----------|
-| 侧边栏创建 | content.js | `createSidebar()` (line ~418) |
-| 富文本初始化 | content.js | `initializeRichEditors()` (line ~1262) |
-| HTML 转 Markdown | content.js | `htmlToMarkdown()` (line ~1684) |
-| 正文提取 | content.js | `extractArticleByDensity()` (line ~1032) |
-| AI 总结调用 | content.js | `generateSummary()` (line ~1154) |
-| Flomo 提交 | content.js | `submitBtn.addEventListener()` (line ~758) |
-| 后台脚本注入 | background.js | `chrome.action.onClicked` (line ~40) |
-| 辅助阅读（注释）| background.js | `processHelpReadAnalysis()` (line ~322) |
+| 侧边栏创建 | content.js | `createSidebar()` |
+| 富文本初始化 | content.js | `initializeRichEditors()` |
+| HTML 转 Markdown | content.js | `htmlToMarkdown()` |
+| 正文提取 | content.js | `extractArticleByDensity()` |
+| AI 总结调用 | content.js | `generateSummary()` |
+| Flomo 提交 | content.js | `submitBtn.addEventListener()` |
+| 后台脚本注入 | background.js | `chrome.action.onClicked` |
 
 ---
 
-*文档生成时间: 2026-04-11*
-*版本: 基于 Flomo Clipper 0.1.3*
+*文档生成时间: 2026-08-01*
+*版本: 基于 Flomo Clipper 0.1.4*

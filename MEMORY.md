@@ -26,18 +26,15 @@
 - 2026-04-19：保存配置时支持清空输入框来删除 storage 中的旧值
 - 2026-05-07：v0.1.3 重构完成——清理辅助阅读代码、AI 升级为通用 OpenAI 格式、隐藏图片上传入口
 - 2026-05-09：`htmlToMarkdown` 修复段落分隔 + 高亮/下划线 fallback 到标准 Markdown
+- 2026-11-04：删除页面级 `insertCSS`（裸选择器污染宿主页面，DeepSeek 输入框被染绿）
+- 2026-11-04：所有跨域请求（AI 总结、Webhook）改由 Service Worker 中转（`proxyFetch`），解决 HTTPS 页面请求 HTTP 内网 API 的混合内容拦截
+- 2026-11-04：防重复注入机制——content.js IIFE 包裹 + background flomoPing 检测（SW 休眠丢失注入状态导致重复注入 SyntaxError）
 
 ## 技术债务状态
-- ✅ **DeepSeek API Key 硬编码**：已解决（用户本地配置）
-- ✅ **关闭按钮/插件切换失效**：已解决（pointer-events 层级修复 + display 切换修复）
-- ✅ **Markdown 格式渲染不完整**：已解决（DOM 解析替代正则）
-- ✅ **提示系统**：已统一为右上角浮层（`showMessage` 替代 `showToast`）
-- ✅ **配置删除**：已支持清空输入框即删除 storage 中的旧配置
-- ✅ **辅助阅读功能**：已在 v0.1.3 彻底清理
-- ✅ **HTML 转 Markdown 段落分隔**：已修复（v0.1.3+）
-- ✅ **高亮/下划线 Flomo 渲染**：已 fallback 到标准 Markdown（v0.1.3+），并增强对 `span style="text-decoration: underline"` 及多种颜色写法的识别；因 Flomo 不支持原始样式，前端对应按钮已禁用
+- ✅ 已解决（详见 git 历史）：DeepSeek Key 硬编码、关闭按钮失效、Markdown 渲染、提示系统统一、配置删除、辅助阅读清理、段落分隔、高亮/下划线 fallback（已增强 span/font 识别，前端按钮已禁用）、页面样式污染、混合内容拦截、重复注入
 - ⏳ **HTML 转 Markdown 维护**：建议未来引入 `turndown` 库（当前自定义实现已稳定）
 - ⏳ **图片传递可靠性**：前端入口已隐藏，后端代码保留，待 Flomo 支持
+- ⏳ **遗留文件待清理**：`styles/sidebar.css`、`sidebar.html`（运行时无人使用，仅互相引用）
 
 ## 血泪教训（不要再犯）
 
@@ -116,42 +113,30 @@ if (!value.trim()) {
 
 **检查清单**：提交前永远不要用 `git add -A` 把含 `.env`、测试脚本、硬编码 key 的文件一起提交；公开仓库前必须做一次 secret 扫描。
 
+### 7. 绝不向页面注入含裸选择器的 CSS
+**问题**：`insertCSS` 把含 `textarea`、`.close-btn` 等裸选择器的 `sidebar.css` 注入页面，导致所有网站的输入框被染成 flomo 绿。
+
+**正确做法**：扩展 UI 样式只走 Shadow DOM 或全内联；页面级注入的 CSS 里任何裸标签/通用类名都是定时炸弹。
+
+### 8. 所有跨域请求走 Service Worker 中转
+**问题**：content script 直连 HTTP 内网 API（`http://172.19.36.172:4000`），在 HTTPS 页面被混合内容拦截报 "Failed to fetch"，排查时一度误判为页面 CSP。
+
+**正确做法**：content script 一律 `chrome.runtime.sendMessage` → Service Worker 代发 fetch（`proxyFetch`）。SW 不受页面 CSP、混合内容、页面 Service Worker 拦截影响。
+
+### 9. MV3 Service Worker 休眠 = 内存状态不可信
+**问题**：`injectedTabs` 存内存，SW 休眠丢失后重复注入 content.js，顶层 `const` 重复声明直接 SyntaxError，页面里一直是旧版代码在跑（表现为"改了代码不生效"）。
+
+**正确做法**：
+- content.js 用 IIFE 包裹 + `window.__flomoContentScriptLoaded` 标记，重复注入自动跳过
+- background 注入前 `flomoPing` 检测页面实际状态，版本不符提示刷新，不盲目注入
+
+### 10. 排查扩展问题先硬刷新标签页
+注入的 content script 在页面生命周期内常驻，扩展重载/代码更新都不影响已注入的旧代码。验证任何修复前：`chrome://extensions` 重载 + 确认**实际加载的目录**（根目录 vs dist/staging）+ 标签页 Ctrl+Shift+R。
+
+**探针法**：怀疑键盘/事件被拦截时，在目标元素挂 capture 监听打印事件和 `defaultPrevented`，一次区分"事件被拦截" vs "页面自身逻辑失效"。
+
 ## 关键技术方案（供参考）
-
-### Shadow DOM 事件处理
-```javascript
-// 宿主元素控制整体交互
-host.style.setProperty('pointer-events', isOpen ? 'auto' : 'none', 'important');
-
-// 侧边栏和按钮必须显式启用事件
-.sidebar { pointer-events: auto !important; }
-.close-btn { pointer-events: auto !important; }
-```
-
-### HTML 转 Markdown（DOM 解析方案）
-```javascript
-function htmlToMarkdown(html) {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-
-    function processNode(node) {
-        if (node.nodeType === Node.TEXT_NODE) return node.textContent;
-        if (node.nodeType === Node.ELEMENT_NODE) {
-            const childContent = Array.from(node.childNodes)
-                .map(child => processNode(child)).join('');
-            // 根据 tagName 返回对应 Markdown 格式
-            switch(node.tagName.toLowerCase()) { ... }
-        }
-    }
-    return processNode(tempDiv);
-}
-```
-
-### Chrome Storage 配置存储
-```javascript
-// 读取
-chrome.storage.local.get([KEY], (result) => { ... });
-
-// 写入
-chrome.storage.local.set({ [KEY]: value }, () => { ... });
-```
+- **Shadow DOM 事件处理**：宿主元素用 `setProperty('pointer-events', ..., 'important')` 控制交互；侧边栏和按钮显式 `pointer-events: auto !important`
+- **HTML 转 Markdown**：DOM 递归解析（`processNode`），非正则——实现见 `content.js` 的 `htmlToMarkdown()`
+- **跨域请求**：一律走 background 的 `proxyFetch` 中转，不在 content script 里直接 fetch
+- **注入检测**：background 点击时 `flomoPing` 页面确认注入状态，content.js 有 IIFE 防重复注入

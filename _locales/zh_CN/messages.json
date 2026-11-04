@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "flomo_随记",
+    "description": "扩展名称（中文）"
+  },
+  "appDescription": {
+    "message": "一键摘录网页内容，AI 自动总结，同步到 flomo 笔记",
+    "description": "扩展描述（中文）"
+  }
+}

@@ -1,3 +1,16 @@
+// ========== 防重复注入保护 ==========
+// 背景：MV3 Service Worker 休眠后内存中的注入状态会丢失，background 可能把本脚本
+// 重复注入同一页面。顶层 const 在全局词法环境中重复声明会导致整脚本 SyntaxError
+// （所有功能失效且难以排查），因此用 IIFE 包裹隔离作用域 + 全局标记跳过重复执行。
+// 注意：background.js 侧也有 ping 检测兜底，两处是双保险。
+if (window.__flomoContentScriptLoaded) {
+    console.log('[Flomo] content.js 已加载过，跳过重复注入');
+} else {
+window.__flomoContentScriptLoaded = true;
+window.__flomoContentScriptVersion = '2026-11-04-v2';
+
+(function() {
+
 const FLOMO_WEBHOOK_STORAGE_KEY = 'FLOMO_WEBHOOK_URL';
 const ENABLE_IMAGE_UPLOAD = false; // 当前禁用图片上传（Flomo Webhook 不支持 Base64 图片）
 
@@ -549,6 +562,58 @@ const SHADOW_STYLE = `
         background-color: rgb(39, 179, 104) !important;
     }
 
+    /* 打赏区：1×2 表格边框布局，两个收款码并排框在一起，图片缺失时自动隐藏对应区块 */
+    .donate-section {
+        border-top: 1px solid #eee !important;
+        padding-top: 16px !important;
+        margin-top: 16px !important;
+    }
+
+    .donate-text {
+        font-size: 12px !important;
+        color: #888 !important;
+        line-height: 1.6 !important;
+        margin: 0 0 10px 0 !important;
+    }
+
+    /* 1×2 表格：两格并排，整体外框 + 中间一条分隔线，看起来像一个整体卡片 */
+    .donate-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        background: #fff !important;
+    }
+
+    .donate-cell {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 14px 10px 12px !important;
+        gap: 8px !important;
+        background: #fff !important;
+    }
+
+    /* 左格加右边框作为中间分隔线 */
+    .donate-cell.wx { border-right: 1px solid #e0e0e0 !important; }
+
+    .donate-cell img {
+        width: 128px !important;
+        height: 128px !important;
+        object-fit: contain !important;
+        display: block !important;
+    }
+
+    .donate-cell .donate-label {
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        color: #555 !important;
+    }
+
+    .donate-cell .donate-brand.wx  { color: #07c160 !important; }
+    .donate-cell .donate-brand.zfb { color: #1677ff !important; }
+
     .rich-editor::-webkit-scrollbar {
         width: 6px !important;
     }
@@ -737,6 +802,25 @@ function createSidebar() {
                             <label style="border-top: 1px solid #eee; padding-top: 16px; display: block;">Flomo Webhook 地址</label>
                             <input type="url" id="flomoWebhookUrl" placeholder="https://flomoapp.com/iwh/xxx/xxx/" autocomplete="off" />
                             <button type="button" id="saveWebhookBtn" class="save-webhook-btn">保存</button>
+
+                            <!-- 打赏区：收款码图片放在扩展 images/ 目录，通过 chrome.runtime.getURL 引用；
+                                 若图片缺失（未放入），onerror 自动隐藏对应格子，不影响其他功能 -->
+                            <div class="donate-section">
+                                <label>☕ 支持开发者</label>
+                                <p class="donate-text">如果这个插件帮到了你，欢迎扫码请作者喝杯咖啡，这会是我持续更新的动力～</p>
+                                <div class="donate-grid">
+                                    <div class="donate-cell wx">
+                                        <img src="${chrome.runtime.getURL('images/donate-wechat.jpg')}" alt="微信收款码" onerror="this.parentElement.style.display='none'" />
+                                        <span class="donate-label donate-brand wx">微信</span>
+                                        <span class="donate-label">扫码打赏</span>
+                                    </div>
+                                    <div class="donate-cell zfb">
+                                        <img src="${chrome.runtime.getURL('images/donate-alipay.jpg')}" alt="支付宝收款码" onerror="this.parentElement.style.display='none'" />
+                                        <span class="donate-label donate-brand zfb">支付宝</span>
+                                        <span class="donate-label">扫码打赏</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1186,7 +1270,8 @@ function initializeSidebar() {
         }
 
         try {
-            const response = await fetch(webhookUrl, {
+            // 通过 Service Worker 中转请求（页面环境可能拦截 content script 的跨域 fetch）
+            const response = await proxyFetch(webhookUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1205,7 +1290,7 @@ function initializeSidebar() {
                     toggleSidebar();
                 }, 2000);
             } else {
-                showMessage('保存失败：' + response.statusText, 'error');
+                showMessage('保存失败：' + (response.statusText || `HTTP ${response.status}`), 'error');
             }
         } catch (error) {
             showMessage('保存失败：' + error.message, 'error');
@@ -1362,6 +1447,11 @@ function toggleSidebar() {
 // 监听插件图标点击
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log('[Flomo] Received message:', request.action);
+    // 注入检测：background 在注入前先 ping，已注入则回报版本号，避免重复注入
+    if (request.action === 'flomoPing') {
+        sendResponse({ loaded: true, version: window.__flomoContentScriptVersion || 'unknown' });
+        return;
+    }
     if (request.action === 'toggleSidebar') {
         try {
             toggleSidebar();
@@ -1628,6 +1718,38 @@ async function migrateLegacyConfig() {
 }
 
 // 调用通用 OpenAI 兼容 API
+// 通过 background Service Worker 中转网络请求。
+// 原因：content script 的 fetch 运行在页面环境中，会被页面 CSP、
+// 页面 Service Worker 等拦截（曾在新浪财经页面出现 "Failed to fetch"），
+// 而 Service Worker 发出的请求不受页面环境约束。
+function proxyFetch(url, options = {}) {
+    return new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+            action: 'proxyFetch',
+            url,
+            method: options.method || 'POST',
+            headers: options.headers || {},
+            body: options.body
+        }, (resp) => {
+            // 通道级错误（如扩展重载后旧的 content script 仍在发消息）
+            if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message || '扩展后台通信失败'));
+                return;
+            }
+            if (!resp) {
+                reject(new Error('扩展后台无响应，请刷新页面后重试'));
+                return;
+            }
+            // 网络层错误（DNS、连接失败等）
+            if (resp.networkError) {
+                reject(new Error(resp.networkError));
+                return;
+            }
+            resolve(resp); // { ok, status, statusText, body }
+        });
+    });
+}
+
 async function generateSummary() {
     // 先尝试迁移旧配置
     await migrateLegacyConfig();
@@ -1655,7 +1777,8 @@ async function generateSummary() {
     const normalizedBaseUrl = baseUrl.replace(/\/$/, '');
 
     try {
-        const response = await fetch(`${normalizedBaseUrl}/chat/completions`, {
+        // 通过 Service Worker 中转请求（页面环境可能拦截 content script 的跨域 fetch）
+        const response = await proxyFetch(`${normalizedBaseUrl}/chat/completions`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1672,11 +1795,15 @@ async function generateSummary() {
         });
 
         if (!response.ok) {
-            const errText = await response.text().catch(() => '');
-            throw new Error(`API 调用失败 (${response.status}): ${errText || response.statusText}`);
+            throw new Error(`API 调用失败 (${response.status}): ${response.body || response.statusText}`);
         }
 
-        const data = await response.json();
+        let data;
+        try {
+            data = JSON.parse(response.body);
+        } catch (e) {
+            throw new Error('API 返回的数据格式异常，无法解析');
+        }
         return data.choices[0].message.content;
     } catch (error) {
         console.error('AI总结失败:', error);
@@ -1718,6 +1845,14 @@ function initializeRichEditors() {
 
 // 判断元素是否在编辑器内
 function isInEditor(element) {
+    if (!element) return false;
+    // selection 的 anchorNode/commonAncestorContainer 经常是文本节点，
+    // 文本节点没有 closest 方法（直接调用会抛 TypeError），取其父元素再判断
+    if (element.nodeType !== Node.ELEMENT_NODE) {
+        element = element.parentElement;
+    }
+    if (!element || typeof element.closest !== 'function') return false;
+
     // 检查元素是否在 Shadow DOM 中的编辑器内
     const host = document.querySelector('#flomo-sidebar-host');
     if (host && host.shadowRoot) {
@@ -2387,3 +2522,6 @@ function getEditorMarkdown(editorId) {
     if (!editor) return '';
     return htmlToMarkdown(editor.innerHTML);
 }
+
+})(); // IIFE 结束（防重复注入保护）
+} // if (window.__flomoContentScriptLoaded) else 分支结束
