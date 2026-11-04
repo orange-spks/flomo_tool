@@ -241,6 +241,13 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 > 为什么 `Web history` 要勾：扩展会读当前标签页 URL 来填笔记里的原文链接。
 > 审核员对照代码看得到 `tab.url` 的读取，漏勾反而算「申报不实」。
 
+> ⚠️ **最常见的卡点：三条 certification 没勾。** 症状是点 Submit 弹出
+> 「Unable to publish — To publish your item, you must certify that your data usage complies with
+> our Developer Program Policies. You can certify this on the Privacy practices tab」。
+> 上面那些说明框、数据勾选、隐私政策 URL 全填了也没用——**必须把 Data usage 最下面那三条
+> "I certify that the following disclosures are true" 全部勾上，再点右上 Save draft**，
+> Submit 才会变蓝。
+
 ### 4.3 Build → Distribution
 
 | 字段 | 填什么 |
