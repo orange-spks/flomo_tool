@@ -153,7 +153,7 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 
 ### 2.5 权限说明是按 manifest 逐条列的，审核员会对着代码看
 
-`Privacy practices` 标签页会**自动列出**你 manifest 里的每一条权限，每条一个必填输入框。
+`Build → Privacy` 页会**自动列出**你 manifest 里的每一条权限，每条一个必填输入框。
 本包会问到 5 项：`activeTab`、`scripting`、`tabs`、`storage`、`<all_urls>` 主机权限，
 外加 `content_scripts` 的 `<all_urls>`（就是 `key-blocker.js`）。
 
@@ -173,39 +173,53 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 4. 确认两步验证已开（2.2）
 5. 回后台 → **Add new item**（或 "New item"）→ 上传 `dist/flomo-memo-v1.0.0.zip`
    - ⚠️ 只建**一个 item**。重复点 Add new item 会生成两条独立记录，两条都会进审核，商店里会出现两个一样的扩展
-6. 上传成功后填 **Store listing**（第 4.1 节）
-7. 填 **Privacy practices**（第 4.2 节）
-8. 填 **Distribution**，选 Trader 身份（第 4.3 节）
-9. 右上 **Submit for review**，备注框粘 `review-notes.md` 第 5 节英文原文（第 4.4 节）
-10. 状态变 `Pending review` / `In review`，等 1–3 天（`<all_urls>` 大概率领人工复核，拖到 1–2 周也正常）
+6. 左侧 **Build → Store listing**：填文案与图片（第 4.1 节）
+   - 这一页最容易被漏掉的是 **Global screenshots**：它和 Localized screenshots 是两个独立的必填区，同一组图要传两遍
+7. 左侧 **Build → Privacy**：单一用途 + 每条权限说明 + 数据申报（第 4.2 节）
+8. 左侧 **Build → Distribution**：可见性、地区、Trader 身份（第 4.3 节）
+9. 左侧 **Access → Test instructions**：审核备注（第 4.4 节，新 UI 里备注落在这一页，不再是提交弹窗）
+10. 右上 **Submit for review**（四个必填区没填全时它是灰的，鼠标悬停会提示还差什么）
+11. 状态变 `Pending review` / `In review`，等 1–3 天（`<all_urls>` 大概率领人工复核，拖到 1–2 周也正常）
 
 ---
 
-## 4. 四个标签页逐字段对照
+## 4. 后台逐字段对照（Build / Access 两组）
 
-### 4.1 Store listing
+> 新版后台的左侧导航分三组：**Build**（Status / Package / Store listing / Privacy / Distribution）、
+> **Access**（Test instructions）、**Analytics**。带 `*` 的是必填，缺一个 Submit 就是灰的。
 
-| 字段 | 填什么 | 备注 |
-|------|--------|------|
-| Product name | **不可填** | 只读，来自 manifest（后台按界面语言显示 `flomo Memo`，中文环境显示 `flomo 随记`） |
-| Description（详细说明） | `listing-zh.md` 第 3 节的引用块 | 1376 字符 ≤ 16000；**会被自动预填成 manifest 里那句 29 字符的简介，必须整段替换掉** |
-| Category | `Productivity`（生产力） | 实测下拉里默认可能是 `Tools`，优先选 Productivity，没有就留 Tools |
-| Language | `中文（简体）` | 主语言 |
-| Store icon | `docs/store/assets/store-icon-128x128.png` | **必填，实测后台不会自动从包里带出**；128×128，已压成 24-bit 无 alpha |
-| Screenshots | `01-sidebar`、`02-settings`、`03-selection` 三张 | **必填至少 1 张**；1280×800 已确认无 alpha，上限 5 张 |
-| Small promo tile / Large promo tile | `promo-440x280.png` / `promo-1400x560.png` | 可选，有就传 |
-| YouTube video（Localized promo video） | 留空 | 可选 |
-| Homepage URL | `https://github.com/orange-spks/flomo_tool` | — |
-| Support URL | `https://github.com/orange-spks/flomo_tool/issues` | — |
+### 4.1 Build → Store listing
 
-> 关于「短说明从哪来」：Chrome 后台**没有**单独的短说明输入框，商店标题下那句小字取的是
-> manifest 的 `description`（即 `_locales/zh_CN/messages.json` 的 `appDescription`，29 字符）。
-> 想改它只能改 manifest 重新打包；`Description` 那个大框是详细说明，两者不是一回事。
+按页面从上到下的顺序：
 
-英文区（`English` 语言行）：如果包里有 `_locales/en`，后台会出现英文行，可以按 `listing-en.md` 填，
-也可以留空——留空时商店只展示中文列表，**不影响审核**。想省时间就留空。
+| 位置 | 字段 | 填什么 | 备注 |
+|------|------|--------|------|
+| 顶部 | Current editing language | `Chinese (China) – zh-CN (default)` | 保持默认，不要切 |
+| Product details | Title from package | `flomo 随记` | **只读**，来自 manifest。切到英文界面会显示 `flomo Memo`，那是 en 语言包，正常 |
+| Product details | Summary from package | `一键摘录网页内容，AI 自动总结，同步到 flomo 笔记`（29 字符） | **只读**，取 manifest 的 `description`，想改只能改 manifest 重新打包 |
+| Product details | **Description \*** | `listing-zh.md` 第 3 节（1376 字符） | 预填的就是上面那句 29 字符的简介，**必须整段替换**。上限 16,000 |
+| Product details | **Category \*** | `Productivity`（生产力） | 实测默认给的是 `Tools`，如果有 Productivity 就改过去；没有就留 Tools |
+| Graphic assets | **Store icon \*** | `docs/store/assets/store-icon-128x128.png` | 128×128，已压成 24-bit 无 alpha（原 `images/icon128.png` 带 alpha） |
+| Localized assets | Localized promo video | 留空 | 可选，要 YouTube 链接 |
+| Localized assets | **Localized screenshots \*** | `01` / `02` / `03` 三张 | 至少 1 张，上限 5；1280×800 已确认无 alpha |
+| Global assets | Global promo video | 留空 | 可选 |
+| Global assets | **Global screenshots \*** | **同一组 3 张，再传一次** | ⚠️ 和上面是两个独立必填区，漏传 Submit 点不动 |
+| Global assets | Small promo tile（440×280 Canvas） | `promo-440x280.png` | 无 `*`，可选，有就传 |
+| Global assets | Marquee promo tile（1400×560 Canvas） | `promo-1400x560.png` | 无 `*`，可选 |
+| Additional fields | Official URL | `None` | 我们没有做过 Google Search Console 验证，留空 |
+| Additional fields | Homepage URL | `https://github.com/orange-spks/flomo_tool` | 上限 2048 字符，够 |
+| Additional fields | Support URL | `https://github.com/orange-spks/flomo_tool/issues` | — |
+| Additional fields | Mature content | **关**（默认） | 不要打开，开了会在部分地区被隐藏 |
+| 底部 | Item support → Visibility | 见 4.3 | 这里的链接只是跳去 Distribution 改可见性 |
 
-### 4.2 Privacy practices（最容易填错的一页）
+> **Localized 和 Global 的区别**：Localized = 只给当前编辑语言（zh-CN）用；Global = 其它所有语言的兜底。
+> 因为包里带了 `_locales/en`，后台会出现英文语言行，那几行可以留空不管，**不影响审核**——
+> 但 Global assets 是兜底，两个都带 `*`，所以图得传两遍。
+
+> 关于「短说明从哪来」：后台**没有**单独的短说明输入框，商店标题下那句小字就是
+> `Summary from package`，取 manifest 的 `description`。`Description` 那个大框是详细说明，两者不是一回事。
+
+### 4.2 Build → Privacy（最容易填错的一页）
 
 | 区块 | 填什么 |
 |------|--------|
@@ -224,7 +238,7 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 > 为什么 `Web history` 要勾：扩展会读当前标签页 URL 来填笔记里的原文链接。
 > 审核员对照代码看得到 `tab.url` 的读取，漏勾反而算「申报不实」。
 
-### 4.3 Distribution
+### 4.3 Build → Distribution
 
 | 字段 | 填什么 |
 |------|--------|
@@ -233,11 +247,16 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 | Pricing | Free |
 | Trader status | 见 2.4，个人开发者建议 `Non-trader` |
 
-### 4.4 Submit for review
+### 4.4 Access → Test instructions（审核备注的新位置）
 
-备注框（"Notes for the reviewer"）粘 `review-notes.md` 第 5 节。
+新版后台把审核备注从「提交弹窗」挪到了 **Access → Test instructions** 这一页，
+在这个框里粘 `review-notes.md` 第 5 节（`HOW TO TEST...` 那一整段）。
+
 这段是**降低人工复核成本的关键**：写明「AI 和提交都需要用户自己的密钥，这是设计如此」，
 否则审核员试不出效果，容易以「功能不可用」驳回。
+
+> 如果这一页还有「测试账号 / 测试步骤」之类的子字段，留空即可——本扩展没有账号体系，也不用登录。
+> 填完记得**保存**，不保存直接去点 Submit 会丢。
 
 ---
 
