@@ -274,6 +274,26 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 > 长版留着：Edge 的 Notes for certification 没有这么严的限制，或者以后 Chrome 回信追问时用。
 > 填完记得点 **Save changes**，不保存直接去点 Submit 会丢。
 
+### 4.5 点 Submit 后弹的「Publishing will be delayed」= 正常，直接继续
+
+提交时会弹一个 **Broad Host Permissions** 警告，大意是「你的扩展可能进深度审核，发布可能延迟」，
+并建议改用 `activeTab` 或把 host 收窄到具体站点。这不是错误、不是拒绝，**点右下 `Submit for review` 直接过**。
+
+不处理它的理由：
+
+- 摘录必须能在任意网页进行，`activeTab` 覆盖不了 `content_scripts` 里那个常驻的 `key-blocker.js`
+- AI 端点由用户自己填（DeepSeek / 硅基流动 / Kimi / Qwen / 自建网关），没办法写成固定白名单
+- `manifest.json` 里其实**已经带 `activeTab`**，警告是通用模板，不是针对漏配
+
+什么时候才值得回头改：
+
+| 触发条件 | 收敛方案 |
+|----------|----------|
+| 审核拖过 2 周仍无结论 | 把 AI 域名改成 `optional_host_permissions`，用户填 Base URL 时申请该域名 |
+| 被明确点名 Broad Host Permissions 驳回 | 把 `key-blocker.js` 改成点击图标后随 `content.js` 一起注入，去掉静态 content script 的 `<all_urls>` |
+
+两种都要重新打包 + 真机重测，是「被卡之后的牌」，不是提交前该主动做的。
+
 ---
 
 ## 5. 提交之后会发生什么
