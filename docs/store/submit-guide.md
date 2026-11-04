@@ -5,6 +5,29 @@
 
 ---
 
+## 🚦 当前状态（2026-11-04 实测）
+
+**Edge 路线暂时走不通，已改走 Chrome。** 原因不是操作问题：新注册的 outlook 个人账号访问
+`partner.microsoft.com/dashboard/microsoftedge/public/login` 会被踢回空白主页
+（`/zh-cn/dashboard/home`，只有「工作区 · 我的访问权限 ＋」和一串 No quick starts）。
+这是 Partner Center 侧的程序注册状态问题，微软论坛的社区解答明确说用户自己修不了、只能提工单：
+
+- [Cannot Enroll in Microsoft Edge Add-ons Program – Redirects to Partner Center Home](https://learn.microsoft.com/en-nz/answers/questions/5555337/cannot-enroll-in-microsoft-edge-add-ons-program-re)
+- [Fix Microsoft Edge Add-ons Enrollment Redirect Loop in Partner Center](https://en.ittrip.xyz/windows/edge/edge-addons-redirect-loop)
+
+所以现在按 **Chrome 优先**执行；Edge 那节（第 3 节）保留，等哪天微软修好了或工单回了再走。
+
+### 最短路径：只剩 4 步
+
+| 步 | 做什么 | 用到的文件 |
+|----|--------|-----------|
+| 1 | 本地验收 2 分钟：`chrome://extensions` → 开发者模式 → 加载已解压 → 选 `dist/unpacked` → 点图标试一遍 | `dist/unpacked/` |
+| 2 | 注册 Chrome 开发者（约 5 美元，一次性）+ 开两步验证 | — |
+| 3 | 上传 zip，填 Store listing | `dist/flomo-memo-v1.0.0.zip` + `listing-zh.md` + `assets/` |
+| 4 | 填 Privacy practices，提交审核 | `review-notes.md` |
+
+---
+
 ## 0. 先说清楚：哪些我做完了、哪些必须你亲手做
 
 ✅ **我已经做好的**
@@ -44,7 +67,10 @@
 | 审核严格度 | 相对宽松，对「Chrome 扩展移植」友好 | 更严格，`<all_urls>` 基本会人工复核 |
 | 包的格式 | 同一个 zip | 同一个 zip |
 
-**所以：先拿 Edge 把「已上架」跑通，全程零成本；跑通后再花 5 美元上 Chrome。**
+> ⚠️ 2026-11-04 实测：Edge 的注册入口被 Partner Center 的状态问题卡死（见文首「当前状态」），
+> 所以下面这个「先 Edge 后 Chrome」的顺序**暂时作废**，改为**直接走 Chrome**（第 4 节）。
+
+**原计划（供参考）：先拿 Edge 把「已上架」跑通，全程零成本；跑通后再花 5 美元上 Chrome。**
 两个商店提交的是**完全相同的 zip**，文案素材也通用，第二次会快很多。
 
 ---
@@ -62,7 +88,7 @@
 
 ---
 
-## 3. 上架 Edge（推荐先做这一步，约 30 分钟 + 等审核）
+## 3. 上架 Edge（⚠️ 当前被微软侧问题卡住，暂时跳过，直接看第 4 节）
 
 ### 3.1 注册开发者账号（免费）
 
