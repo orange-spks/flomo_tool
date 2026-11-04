@@ -36,7 +36,8 @@ Flomo Clipper 是一个 Chrome 浏览器扩展（Manifest V3），帮助用户�
 - ✅ **安全风险**: ~~DeepSeek API Key 硬编码~~ → 已改为用户配置存储在 `chrome.storage.local`
 - ✅ **代码臃肿**: ~~辅助阅读功能已注释停用，但代码仍保留在 background.js 中~~ → 已在 v0.1.3 中彻底清理
 - ✅ **HTML 转 Markdown**: 已修复段落分隔逻辑（v0.1.3+），高亮/下划线 fallback 到标准 Markdown
-- **维护困难**: HTML 转 Markdown 逻辑复杂，建议使用 `turndown` 等成熟库
+- **维护困难**: HTML 转 Markdown 逻辑复杂 → 📋 方案已定型（2026-11-04）：迁移 `turndown`（UMD 单文件随扩展打包 + `addRule` 实现 flomo 特有 fallback），配套 `tests/cases.html` 手工回归页。详见 `docs/FUNCTIONAL_DESIGN.md` 6.1
+- **execCommand 已废弃**: 📌 决策不迁移（2026-11-04）——浏览器实为"冻结但可用"，所需命令恰是其最稳定子集，替换成本远高于收益；做法是所有调用收敛到统一封装函数 `execFormat()`，真被移除时只改一处
 - **多模型配置**: 已完成通用 OpenAI 格式改造（v0.1.3），支持用户自定义 Base URL 和模型
 - **图片传递可靠性**: Flomo Webhook 暂不支持 Base64 图片，前端入口已隐藏，后端代码保留（v0.1.3）
 
@@ -49,6 +50,7 @@ Flomo Clipper 是一个 Chrome 浏览器扩展（Manifest V3），帮助用户�
 | 正文提取 | `content.js` | `extractArticleByDensity()` (~1032行) |
 | AI 总结调用 | `content.js` | `generateSummary()` (~1154行) |
 | 后台脚本注入 | `background.js` | `chrome.action.onClicked` (~40行) |
+| 一键打包发布 | `build.ps1` | `powershell -ExecutionPolicy Bypass -File build.ps1`（校验 manifest → 密钥扫描 → 白名单收集 → 带版本号打 zip） |
 
 # 人设
 
@@ -159,3 +161,25 @@ Flomo Clipper 是一个 Chrome 浏览器扩展（Manifest V3），帮助用户�
 - Base URL: `https://api.siliconflow.cn/v1`
 - 模型: `deepseek-ai/DeepSeek-V3`（必须带厂商前缀）
 - 认证: `Authorization: Bearer <API_KEY>`
+
+---
+
+## 会话记录 [2026-11-04]
+
+### 概要
+修复三个关联问题：1) 页面输入框被染成 flomo 绿（裸选择器 CSS 注入污染）；2) 部分页面 AI 总结 Failed to fetch（真凶是 HTTPS 页面请求 HTTP 内网 API 的混合内容拦截）；3) content.js 重复注入 SyntaxError + isInEditor 文本节点崩溃。另排查 DeepSeek Enter 失效，探针法证明非本扩展问题。
+
+### 关键决策及原因
+- **删除页面级 insertCSS**：侧边栏样式由 Shadow DOM 内 SHADOW_STYLE 提供，toast/浮动工具栏全内联，页面级注入只会污染宿主页面
+- **proxyFetch 中转所有跨域请求**：Service Worker 不受页面 CSP/混合内容/页面 Service Worker 影响
+- **防重复注入双保险**：content.js IIFE 包裹 + 全局标记；background 注入前 flomoPing 检测 + 版本比对，不再依赖内存 injectedTabs
+
+### 陷阱与注意事项
+- MV3 Service Worker 休眠会丢失内存状态，注入检测必须 ping 页面实际状态
+- 排查扩展问题先硬刷新标签页：已注入的旧 content script 在页面生命周期内常驻
+- Console 报错行号与当前代码对不上 = 页面在跑旧版本（本次正是靠此发现重复注入）
+
+### 待办事项
+- [ ] dist/flomo-memo-v1.0.0.zip 需重新打包
+- [ ] styles/sidebar.css、sidebar.html 遗留文件待清理（需确认）
+- [ ] 三轮修复改动未提交，建议 commit

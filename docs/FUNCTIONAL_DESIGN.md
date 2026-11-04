@@ -235,8 +235,9 @@ FileReader 读取为 Base64 Data URL
 |------|------|
 | 标签页状态跟踪 | 记录已注入 content script 的标签页 |
 | 页面加载检测 | 监听 `onUpdated`，检查 `status === 'loading'` 重置状态 |
-| 脚本注入 | 动态注入 `content.js` 和 `sidebar.css` |
+| 脚本注入 | 动态注入 `content.js`（样式由 Shadow DOM 内联提供，不再向页面注入 `sidebar.css`，避免裸选择器污染宿主页面） |
 | 消息转发 | 接收 `toggleSidebar` 消息并转发给 content script |
+| 网络请求中转 | `proxyFetch`：代发 AI 总结、Flomo Webhook 等跨域请求（content script 的 fetch 会被页面 CSP/Service Worker 拦截，Service Worker 不受页面环境约束） |
 | 图标状态 | 在特殊页面显示警告徽章 |
 
 #### 3.7.2 注入状态管理
@@ -331,9 +332,11 @@ tabs.onRemoved → delete injectedTabs[tabId]
 ### 6.1 技术债务
 | 问题 | 影响 | 建议方案 |
 |------|------|----------|
-| ~~DeepSeek API Key 硬编码~~ | ~~安全风险~~ | ✅ 已改为用户配置存储在 Chrome Storage |
-| 辅助阅读功能完全注释 | 代码臃肿 | 拆分为独立文件或彻底移除 |
-| HTML 转 Markdown 逻辑复杂 | 维护困难 | 使用成熟库如 `turndown` |
+| ~~DeepSeek API Key 硬编码~~ | ~~安全风险~~ | ✅ 已改为用户配置存储在 Chrome Storage；打包脚本内置密钥扫描兜底（`build.ps1`，2026-11-04） |
+| ~~辅助阅读功能完全注释~~ | ~~代码臃肿~~ | ✅ 已在 v0.1.3 彻底移除 |
+| ~~手工打包发布~~ | ~~易漏打包/发旧版~~ | ✅ 已脚本化（`build.ps1`：校验 manifest → 密钥扫描 → 白名单收集 → 带版本号打 zip，2026-11-04） |
+| HTML 转 Markdown 逻辑复杂 | 维护困难，嵌套格式组合反复出 bug（2026-04、2026-05 两度返修） | 📋 方案已定型（2026-11-04）：迁移 `turndown`——下载 UMD 单文件随扩展打包（无需引入打包工具），manifest content_scripts 按序加载；flomo 特有规则（`<mark>`→加粗、`<u>`→斜体）用 `turndownService.addRule()` 实现，自研转换器数百行可缩至数十行；配套建 `tests/cases.html` 手工回归页覆盖格式组合（嵌套列表、加粗套高亮、空段落等） |
+| 富文本编辑依赖 `document.execCommand`（已废弃 API） | 理论上存在被浏览器移除的长期风险 | 📌 决策：不迁移（2026-11-04）。该 API 废弃多年但各浏览器实为"冻结但可用"（删除会让大量存量网站崩溃）；项目所需命令（加粗/斜体/下划线/列表）恰是其最稳定子集，自行操作 Range/Selection API 代码量翻数倍且引入跨浏览器选区兼容问题，维护成本不匹配。做法：所有调用收敛到统一封装函数 `execFormat()`，真被移除时只改一处 |
 | Shadow DOM 样式全部 `!important` | 难以覆盖 | 优化 CSS 架构 |
 
 ### 6.2 功能增强建议
@@ -360,7 +363,7 @@ flomo_tool/
 │   ├── background.js      # Service Worker
 │   └── content.js         # 内容脚本（主要逻辑）
 ├── styles/
-│   └── sidebar.css        # 侧边栏样式（基础样式）
+│   └── sidebar.css        # 遗留文件，仅被未使用的 sidebar.html 引用（运行时样式在 Shadow DOM 内）
 ├── sidebar.html           # 侧边栏 HTML（备用，实际使用 Shadow DOM 动态创建）
 └── images/
     ├── icon48.png
