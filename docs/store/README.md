@@ -12,6 +12,7 @@
 | `listing-en.md` | 英文名称/简介/详细说明/关键词 | Store listing → English 行 |
 | `review-notes.md` | 单一用途、逐条权限说明、远程代码、数据申报、审核备注 | Privacy + Notes for certification |
 | `assets/logo-300x300.png` | 商店 Logo（1:1） | Extension logo（Edge 必填） |
+| `assets/store-icon-128x128.png` | **Chrome 的 Store icon**（128×128，已压平 alpha） | Store icon（Chrome 必填） |
 | `assets/promo-440x280.png` | 小宣传图 | Small promotional tile |
 | `assets/promo-1400x560.png` | 大宣传图 | Large promotional tile / Marquee |
 | `assets/screenshots/01-sidebar-1280x800.png` | 主界面（侧边栏 + 摘录 + 感想） | Screenshots |

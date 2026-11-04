@@ -187,18 +187,20 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 
 | 字段 | 填什么 | 备注 |
 |------|--------|------|
-| Product name | **不可填** | 只读，来自 manifest：`flomo 随记`（见 2.1） |
-| Short description | `listing-zh.md` 第 2 节的引用块 | 58 字符 ≤ 132 ✅ |
-| Detailed description | `listing-zh.md` 第 3 节的引用块 | 1376 字符，支持换行 |
-| Category | `Productivity`（生产力工具） | — |
+| Product name | **不可填** | 只读，来自 manifest（后台按界面语言显示 `flomo Memo`，中文环境显示 `flomo 随记`） |
+| Description（详细说明） | `listing-zh.md` 第 3 节的引用块 | 1376 字符 ≤ 16000；**会被自动预填成 manifest 里那句 29 字符的简介，必须整段替换掉** |
+| Category | `Productivity`（生产力） | 实测下拉里默认可能是 `Tools`，优先选 Productivity，没有就留 Tools |
 | Language | `中文（简体）` | 主语言 |
-| Store icon | **不用传** | 自动取包内 128×128 |
-| Screenshots | `01-sidebar`、`02-settings`、`03-selection` 三张 | 1280×800，Chrome 上限 5 张 |
-| Small promo tile | `promo-440x280.png` | 440×280 ✅ |
-| Large promo tile (Marquee) | `promo-1400x560.png` | 1400×560 ✅ |
-| YouTube video | 留空 | — |
+| Store icon | `docs/store/assets/store-icon-128x128.png` | **必填，实测后台不会自动从包里带出**；128×128，已压成 24-bit 无 alpha |
+| Screenshots | `01-sidebar`、`02-settings`、`03-selection` 三张 | **必填至少 1 张**；1280×800 已确认无 alpha，上限 5 张 |
+| Small promo tile / Large promo tile | `promo-440x280.png` / `promo-1400x560.png` | 可选，有就传 |
+| YouTube video（Localized promo video） | 留空 | 可选 |
 | Homepage URL | `https://github.com/orange-spks/flomo_tool` | — |
 | Support URL | `https://github.com/orange-spks/flomo_tool/issues` | — |
+
+> 关于「短说明从哪来」：Chrome 后台**没有**单独的短说明输入框，商店标题下那句小字取的是
+> manifest 的 `description`（即 `_locales/zh_CN/messages.json` 的 `appDescription`，29 字符）。
+> 想改它只能改 manifest 重新打包；`Description` 那个大框是详细说明，两者不是一回事。
 
 英文区（`English` 语言行）：如果包里有 `_locales/en`，后台会出现英文行，可以按 `listing-en.md` 填，
 也可以留空——留空时商店只展示中文列表，**不影响审核**。想省时间就留空。
