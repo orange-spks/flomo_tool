@@ -7,6 +7,7 @@
 | 文件 | 用途 | 商店字段 |
 |------|------|----------|
 | `submit-guide.md` | 逐步提交指南（先 Edge 后 Chrome） | 先读这个 |
+| `chrome-submit.md` | **Chrome 专用**：逐字段照抄清单 + 与 Edge 的 5 处差异 + 驳回对照表 | 提交 Chrome 时对着填 |
 | `listing-zh.md` | 中文名称/简介/详细说明/关键词 | Store listing → 中文行 |
 | `listing-en.md` | 英文名称/简介/详细说明/关键词 | Store listing → English 行 |
 | `review-notes.md` | 单一用途、逐条权限说明、远程代码、数据申报、审核备注 | Privacy + Notes for certification |
@@ -34,10 +35,12 @@
 
 ## 当前状态
 
-- [x] 发布包 `dist/flomo-memo-v1.0.0.zip` 已生成并通过 Chrome 的 `--pack-extension` 校验
-- [x] 隐私政策 `PRIVACY.md` 已在仓库根目录（公网可访问）
-- [x] 三张 1280×800 截图 + 两张宣传图 + 300×300 Logo
-- [x] 中英文商店文案、权限说明、审核备注
+- [x] 发布包 `dist/flomo-memo-v1.0.0.zip` 已生成并通过 Chrome 的 `--pack-extension` 校验（2026-11-04 复核：退出码 0）
+- [x] 包内容与源码 sha256 一致，无 `eval`/`new Function`，无 `__MACOSX`/`.DS_Store` 垃圾
+- [x] 全部图片尺寸复核通过（128 图标 / 300 Logo / 440×280 / 1400×560 / 3×1280×800）
+- [x] 隐私政策 `PRIVACY.md` 已在仓库根目录（公网可访问，curl 200）
+- [x] 中英文商店文案、权限说明、审核备注（字符数已实测，均在限内）
 - [ ] **需要你本人**：注册 Edge 开发者（免费）→ 上传 → 发布
-- [ ] **需要你本人**：注册 Chrome 开发者（约 5 美元）→ 上传 → 发布
+- [ ] **需要你本人**：注册 Chrome 开发者（约 5 美元）+ 开两步验证 → 上传 → 发布（照 `chrome-submit.md`）
+- [x] 商店标题已定：`flomo 随记`（原名 `flomo_随记` 带下划线，2026-11-04 改掉并重新打包）
 - [ ] **需要你本人**：5 分钟真机验收（`submit-guide.md` 第 6 节）

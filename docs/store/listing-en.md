@@ -7,7 +7,7 @@
 
 ---
 
-## 1. Name (≤ 45 chars on Edge, ≤ 75 on Chrome)
+## 1. Name (manifest `name` limit: 45 chars on both stores)
 
 ```
 flomo Memo · Web Clipper

@@ -1,6 +1,6 @@
 # 隐私政策 / Privacy Policy
 
-**扩展名称：flomo_随记（flomo Memo）**
+**扩展名称：flomo 随记（flomo Memo）**
 **最后更新：2026-11-04**
 
 本扩展是第三方开源工具，与 flomo（浮墨笔记）官方无任何隶属关系。

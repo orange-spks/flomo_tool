@@ -1,4 +1,4 @@
-# flomo_随记（flomo Memo）
+# flomo 随记（flomo Memo）
 
 一键将网页内容同步到 Flomo 的 Chrome 浏览器扩展。本扩展为第三方工具，与 flomo 官方无关。
 
@@ -70,7 +70,8 @@ powershell -ExecutionPolicy Bypass -File build.ps1   # Windows
 ## 版本历史
 
 ### v1.0.0
-- 上架商店首个正式版：扩展更名为「flomo_随记」（英文：flomo Memo），通过 `_locales` 支持中英文名称
+- 上架商店首个正式版：扩展定名「flomo 随记」（英文：flomo Memo），通过 `_locales` 支持中英文名称
+  （商店标题直接取 manifest 的 `name`，改 `_locales/*/messages.json` 的 `appName` 后需重新打包）
 - 新增设置面板打赏区（微信/支付宝收款码，图片缺失时自动隐藏）
 - 安全自查：全仓库无硬编码 API Key / Webhook Token，商店 zip 仅含运行时文件
 

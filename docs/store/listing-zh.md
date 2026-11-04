@@ -8,12 +8,14 @@
 ## 1. 名称（Name）
 
 ```
-flomo 随记 · 网页剪藏助手
+flomo 随记
 ```
 
-- Chrome 名称上限 75 字符，Edge 上限 45 字符，上面这串 16 个字符，两边都够。
-- 名称由 manifest 的 `name` 决定（当前是 `flomo_随记`）。如果商店里要显示成上面这串，
-  需要把 `_locales/zh_CN/messages.json` 的 `appName` 改成 `flomo 随记 · 网页剪藏助手` 后重新打包。
+- 商店里显示的标题**只能来自 manifest**（`_locales/zh_CN/messages.json` 的 `appName`），
+  后台没有输入框可以覆盖。当前值已定为 `flomo 随记`（8 字符，上限 45），
+  2026-11-04 已重新打包，`dist/flomo-memo-v1.0.0.zip` 里就是它。
+- 英文区同理：`_locales/en/messages.json` 的 `appName` = `flomo Memo`。
+- 不要再写「flomo 随记 · 网页剪藏助手」这类长名——Chrome 没有地方填，写了也不会显示。
 
 ---
 

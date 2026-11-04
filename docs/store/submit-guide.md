@@ -150,6 +150,9 @@
 
 ## 4. 上架 Chrome Web Store（Edge 通过后再做）
 
+> 细分清单见 **`chrome-submit.md`**（逐字段照抄 + Chrome 与 Edge 的 5 处差异 + 驳回对照表）。
+> 下面只留最关键的顺序。
+
 ### 4.1 注册开发者账号（付费）
 
 1. 打开 <https://chrome.google.com/webstore/devconsole>
@@ -161,9 +164,11 @@
 ### 4.2 上传 + 填写
 
 1. 点 **Add new item** → 上传 `dist/flomo-memo-v1.0.0.zip`
+   （只建一个 item；重复创建会生成两条独立记录，商店里出现两个一样的扩展）
 2. **Store listing** 标签页：
-   - Name：`flomo 随记 · 网页剪藏助手`（≤75 字符）
-   - Short description：`listing-zh.md` 第 2 节（≤132 字符）
+   - Name：**没有这个框**。商店标题 = manifest 的 `name`，当前是 `flomo 随记`（2026-11-04 已从
+     `flomo_随记` 改掉并重新打包），后台改不了；要改只能改 `_locales/zh_CN/messages.json` 的 `appName` 再重新打包
+   - Short description：`listing-zh.md` 第 2 节（58 字符，上限 132）
    - Detailed description：`listing-zh.md` 第 3 节
    - Category：`Productivity`
    - Language：`中文（简体）`
@@ -226,8 +231,10 @@ A：不能，因为你要在任意网页上摘录。但可以拆成「`content_s
 只留用户配置的 AI 域名」，代价是用户换 AI 服务商需要手动授权域名。目前保持现状 + 写好说明是更优解。
 
 **Q：会不会因为用了「flomo」这个名字被拒？**
-A：有这个风险，但详情页已明确写「第三方工具，与 flomo 官方无隶属关系」。若被拒，
-改商店名称（如「随记 · 网页剪藏助手」）即可，**代码和包都不用动**，重新提交就行。
+A：有这个风险，但详情页已明确写「第三方工具，与 flomo 官方无隶属关系」。若被拒：
+- **Edge**：改后台的商品名即可，代码和包都不用动
+- **Chrome**：商店标题来自 manifest，改后台没用，必须把 `_locales/*/messages.json` 的 `appName`
+  改成 `随记 · 网页剪藏助手`，再 `bash build.sh` 重新上传（描述里保留「兼容 flomo」字样）
 
 **Q：上架要钱吗？用户下载要钱吗？**
 A：Edge 免费；Chrome 一次性 5 美元（只交一次，以后更新不再收费）；用户下载免费。
