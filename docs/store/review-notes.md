@@ -7,11 +7,17 @@
 
 ## 1. 单一用途说明（Single Purpose）
 
-**English（复制这段）**
+**English（复制这段，523 字符 / 上限 1000）**
 
 ```
 flomo Memo lets users clip content from the web page they are reading and save it to their own flomo notes. The extension has one purpose: capture-and-send. The side panel, rich text editor, page text extraction and optional AI summary all exist only to prepare and deliver that single note.
+The one always-on script (key-blocker.js) is a keyboard-event guard, not a data collector: it stops page shortcuts from firing while the user types inside the extension's own panel, and returns immediately for any event outside it.
 ```
+
+> 为什么要把 key-blocker 那句塞进单一用途：新版后台的 Privacy 页只有 5 个说明框
+> （activeTab / scripting / tabs / storage / Host permission），**没有**给 content script 单独留位置。
+> 而 Host permission 那个框只收 `<all_urls>` 的用途，两段合起来会超 1000 字符，
+> 所以拆一句到这里，最省事也最不容易被追问。
 
 **中文对照**
 
@@ -50,17 +56,23 @@ Used to store the user's own configuration - flomo webhook URL, AI API base URL,
 
 ### 2.5 Host permission `<all_urls>`
 
+> 后台只有**一个** Host permission 输入框（它的说明写着「any match pattern in `permissions` 和
+> `content_scripts`」），所以 `content_scripts` 的 `<all_urls>` 也算在这一条里。
+> 下面这版是「权限用途 + content script 用途」的合并版，731 字符 / 上限 1000，可直接粘。
+
 ```
 Two reasons:
 1) The user can clip from any page they are reading, so the side panel must be injectable on any site on demand (not automatically).
-2) The AI summary feature must call the OpenAI-compatible endpoint the user configured themselves. Users may enter a provider we did not anticipate (DeepSeek, SiliconFlow, Kimi, Qwen, a self-hosted gateway, an internal address), so a fixed allowlist would break the feature.
-
-All outbound requests are made by the extension's service worker and go only to endpoints the user explicitly configured. The extension never contacts any developer-operated server, and never sends data anywhere the user did not choose.
+2) The AI summary must call the OpenAI-compatible endpoint the user configured. Users may enter a provider we did not anticipate (DeepSeek, SiliconFlow, Kimi, Qwen, a self-hosted gateway, an internal address), so a fixed allowlist would break the feature.
+This same host permission also covers the content script: key-blocker.js must be present on any site to defend focus inside our own panel, and it never reads page content, storage or network.
+All outbound requests are made by the service worker and go only to endpoints the user configured. There is no developer-operated server.
 ```
 
 ### 2.6 Content script match `<all_urls>` (`scripts/key-blocker.js`)
 
-> 这个静态 content script 是最可能被追问的一项，一定要说清楚「它不读页面内容，只处理键盘事件」。
+> ⚠️ 新版后台**没有**给 content script 单独留输入框，这块内容已经拆成两处：
+> 「它不读页面内容」那句进了第 1 节 Single purpose，`<all_urls>` 的用途进了第 2.5 节合并版。
+> 下面这段**留作备查**——如果审核员回信追问，或者以后后台改版又出现单独的框，直接用这段完整的。
 
 ```
 This is a keyboard-event guard, not a data collector. While the user types inside the extension's own side panel, sites such as YouTube or Bilibili register global key handlers on document and hijack keys (space, arrows, letters). The guard runs in the capture phase at document_start so it can run before those page handlers, and it calls stopImmediatePropagation ONLY when the event target is inside the extension's own shadow DOM and inside an editable field. It never calls preventDefault, never reads page content, never reads or writes storage, and never sends messages. For every event outside the side panel it returns immediately without side effects.
@@ -100,9 +112,19 @@ Chrome / Edge 会让你勾选「收集哪些用户数据」，并要你承诺三
 
 ---
 
-## 5. 审核备注（Notes for certification）
+## 5. 审核备注（Access → Test instructions）
 
-Chrome 的「审核备注」、Edge 的「Notes for certification」都支持英文，直接粘这段：
+新版 Chrome 后台把备注挪到了 **Access → Test instructions**，字段是
+`Credentials`（Username / Password，各 100 字符）+ `Additional instructions`（**上限 500 字符**）。
+本扩展没有账号体系，Credentials 留空，只要填 `Additional instructions`。
+
+### 5.1 短版（479 字符 / 上限 500，直接粘这个）
+
+```
+No login. Install, open any article page (e.g. https://en.wikipedia.org/wiki/Marginalia) and click the toolbar icon: a panel opens with title and URL pre-filled. Typing, bold and list buttons work offline. "Send to Flomo" needs the user's own free flomo webhook; "AI summary" needs the user's own OpenAI-compatible key. Both are by design. Donation QR codes in Settings are voluntary tips only: no payment flow, no payment data. No remote code, no analytics, no developer server.
+```
+
+### 5.2 长版（备查：Edge 的备注框没有 500 字符限制时用这段）
 
 ```
 HOW TO TEST (no account, no payment, no configuration required)

@@ -221,19 +221,22 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 
 ### 4.2 Build → Privacy（最容易填错的一页）
 
-| 区块 | 填什么 |
-|------|--------|
-| Single purpose | `review-notes.md` 第 1 节英文原文 |
-| `activeTab` justification | 第 2.1 节 |
-| `scripting` justification | 第 2.2 节 |
-| `tabs` justification | 第 2.3 节 |
-| `storage` justification | 第 2.4 节 |
-| `<all_urls>` host permission | 第 2.5 节 |
-| Content script `<all_urls>`（key-blocker） | 第 2.6 节 |
-| Are you using remote code? | **No, I am not using remote code**（实测无 eval/new Function，站得住） |
-| Data usage 勾选 | Website content ✅ / Authentication information ✅ / Web history ✅，其余不勾 |
-| 三条 Limited Use 承诺 | 全部勾上 |
-| Privacy policy URL | `https://github.com/orange-spks/flomo_tool/blob/main/PRIVACY.md` |
+| 区块 | 字段（按页面顺序） | 填什么 |
+|------|--------------------|--------|
+| Single purpose | Single purpose description `*` | `review-notes.md` 第 1 节（523 字符，已含 key-blocker 那句） |
+| Permission justification | activeTab justification `*` | 第 2.1 节 |
+| Permission justification | scripting justification `*` | 第 2.2 节 |
+| Permission justification | tabs justification `*` | 第 2.3 节 |
+| Permission justification | storage justification `*` | 第 2.4 节 |
+| Permission justification | Host permission justification `*` | 第 **2.5 节合并版**（731 字符，已含 content script 用途） |
+| Remote code | Are you using remote code? | **必须改选 `No, I am not using remote code`** ⚠️ 默认勾的是 `Yes`，勾 `Yes` 还会逼你多填一段 Justification |
+| Data usage | 勾选项 | Website content ✅ / Authentication information ✅ / Web history ✅，其余全不勾 |
+| Data usage | 三条 certification | 三条全勾（不勾不让提交） |
+| Privacy policy | Privacy policy URL `*` | `https://github.com/orange-spks/flomo_tool/blob/main/PRIVACY.md` |
+
+> ⚠️ 这一页只有 **5 个** justification 框，**没有**给 content script 单独留位置。所以
+> `key-blocker.js` 的说明已经拆成两处：一句进 Single purpose，`<all_urls>` 用途并进 Host permission。
+> `review-notes.md` 第 2.6 节那段完整版**留作备查**（审核员回信追问时再发）。
 
 > 为什么 `Web history` 要勾：扩展会读当前标签页 URL 来填笔记里的原文链接。
 > 审核员对照代码看得到 `tab.url` 的读取，漏勾反而算「申报不实」。
@@ -242,21 +245,27 @@ Chrome 要求开发者账号开启 2FA，否则「Submit for review」点了没�
 
 | 字段 | 填什么 |
 |------|--------|
+| Payments | `Free of charge`（默认已选，**别选 Contains in-app purchases**——打赏收款码不是应用内购买） |
 | Visibility | `Public` |
-| Regions | 全选（若 Trader 选 Non-trader，欧盟自动不可见） |
-| Pricing | Free |
-| Trader status | 见 2.4，个人开发者建议 `Non-trader` |
+| Visibility 下面那个 `None` 下拉 | 它是 `Private` 模式的受测者 Google Group，选 Public 时无效，忽略 |
+| Distribution（地区列表） | `All regions` 已勾，保持；下面国家列表会跟着全勾，不用逐个点 |
+| Trader status | **不在这页**，已经在你账号的 Settings 里声明过（Non-trader），见 2.4 |
 
 ### 4.4 Access → Test instructions（审核备注的新位置）
 
-新版后台把审核备注从「提交弹窗」挪到了 **Access → Test instructions** 这一页，
-在这个框里粘 `review-notes.md` 第 5 节（`HOW TO TEST...` 那一整段）。
+新版后台把审核备注从「提交弹窗」挪到了 **Access → Test instructions**，这一页只有两个区：
+
+| 字段 | 填什么 |
+|------|--------|
+| Credentials → Username / Password | **留空**（本扩展没有账号体系，也不用登录） |
+| Additional instructions | **上限 500 字符**，粘 `review-notes.md` 第 **5.1 节短版**（479 字符） |
 
 这段是**降低人工复核成本的关键**：写明「AI 和提交都需要用户自己的密钥，这是设计如此」，
 否则审核员试不出效果，容易以「功能不可用」驳回。
 
-> 如果这一页还有「测试账号 / 测试步骤」之类的子字段，留空即可——本扩展没有账号体系，也不用登录。
-> 填完记得**保存**，不保存直接去点 Submit 会丢。
+> `review-notes.md` 第 5.2 节的长版（HOW TO TEST 那一大段）不要往这里粘——500 字符塞不下。
+> 长版留着：Edge 的 Notes for certification 没有这么严的限制，或者以后 Chrome 回信追问时用。
+> 填完记得点 **Save changes**，不保存直接去点 Submit 会丢。
 
 ---
 
