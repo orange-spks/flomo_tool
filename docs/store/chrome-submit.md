@@ -58,6 +58,21 @@
 后台左侧是 **Items**（空列表）、**Account**（账号信息、可改发行商名称）、
 右侧是 **"New item"** 按钮 —— 到这一步就可以按第 3 节往下走了。
 
+### ⚠️ 注册后先改 2 处，再动 Trader 声明
+
+第一次进 **Settings**，有三块内容都在同一页，顺序错了要来回滚：
+
+| 位置 | 默认值 | 必须做什么 |
+|------|--------|------------|
+| Profile → **Publisher display name** | 你的 Gmail 地址 | **改成 `flomo 随记` 或 `orange-spks`**。右侧灰字写明「may be shown on your public store listing」——不改的话商店页上你叫一串邮箱 |
+| Profile → **Add contact email** | 空 | 加一个邮箱并**点邮件里的验证链接**，否则后面提交可能被拦 |
+| **Trader declaration** | 未选，进页面会弹窗强制选 | 见 2.4，个人开发者选 `This is a non-trader account` → Save |
+
+建议顺序：改显示名 → 加邮箱验证 → 最后选 Trader 并 Save（保存后布局会重排，先做别的更顺）。
+
+选完 non-trader 后，页面下方的 **Address** 区块通常不再强制必填 —— 它不是必需的就不填，
+因为这一栏是**会公开印在商品详情页上**的。若它仍强制要求，填城市级地址即可。
+
 ---
 
 ## 1. 我这边已经跑完的硬校验（2026-11-04 23:03 改名后复验）
