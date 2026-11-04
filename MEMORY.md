@@ -29,6 +29,7 @@
 - 2026-11-04：删除页面级 `insertCSS`（裸选择器污染宿主页面，DeepSeek 输入框被染绿）
 - 2026-11-04：所有跨域请求（AI 总结、Webhook）改由 Service Worker 中转（`proxyFetch`），解决 HTTPS 页面请求 HTTP 内网 API 的混合内容拦截
 - 2026-11-04：防重复注入机制——content.js IIFE 包裹 + background flomoPing 检测（SW 休眠丢失注入状态导致重复注入 SyntaxError）
+- 2026-11-04：v1.0.0 上架 Chrome Web Store 并提交审核；更名为「flomo 随记」（英文 flomo Memo），商店标题只认 manifest
 
 ## 技术债务状态
 - ✅ 已解决（详见 git 历史）：DeepSeek Key 硬编码、关闭按钮失效、Markdown 渲染、提示系统统一、配置删除、辅助阅读清理、段落分隔、高亮/下划线 fallback（已增强 span/font 识别，前端按钮已禁用）、页面样式污染、混合内容拦截、重复注入
@@ -134,6 +135,20 @@ if (!value.trim()) {
 注入的 content script 在页面生命周期内常驻，扩展重载/代码更新都不影响已注入的旧代码。验证任何修复前：`chrome://extensions` 重载 + 确认**实际加载的目录**（根目录 vs dist/staging）+ 标签页 Ctrl+Shift+R。
 
 **探针法**：怀疑键盘/事件被拦截时，在目标元素挂 capture 监听打印事件和 `defaultPrevented`，一次区分"事件被拦截" vs "页面自身逻辑失效"。
+
+### 11. 商店上架：标题只认 manifest，后台藏着 4 个必填陷阱
+**问题**：以为商店标题能在后台填，结果 Chrome 的标题只读 manifest 的 `name`；后台还藏着几个不填就不让提交的坑，报错信息都不直说。
+
+**正确做法**：
+1. 改名只能改 `_locales/*/messages.json` 的 `appName` → 重新打包上传；改后台文案对标题无效
+2. `Store icon` 是必填拖拽区，**不会**自动从包里带出；包里 icon 若带 alpha，先压平成 24-bit 无 alpha
+3. `Localized screenshots` 和 `Global screenshots` 是**两个独立必填区**，同一组图要传两遍
+4. `Remote code` 默认勾的是 `Yes`，要手动改选 `No`
+5. Data usage 最下面**三条 certification 必须勾**，且勾完要点 `Save draft`；不勾时点提交只弹一句 "you must certify that your data usage complies..."，其他填满也没用
+6. `Test instructions` 的备注只有 **500 字符**上限，长版说明塞不下，要备一份短版
+7. Privacy 页只有 5 个 justification 框，**没有** content script 的位置（Host permission 已覆盖 `content_scripts`）→ 拆到 Single purpose + Host permission 两处
+
+**检查清单**：提交前先点 `Why can't I submit?`，它比人眼准。审核期间改任何字段都会重新排队。
 
 ## 关键技术方案（供参考）
 - **Shadow DOM 事件处理**：宿主元素用 `setProperty('pointer-events', ..., 'important')` 控制交互；侧边栏和按钮显式 `pointer-events: auto !important`
