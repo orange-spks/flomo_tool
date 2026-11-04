@@ -49,6 +49,24 @@
 
 若使用其他平台，需在 `chrome://extensions` → 扩展详情 → 站点访问权限中手动添加对应域名。
 
+## 打包与上架
+
+```bash
+bash build.sh          # macOS / Linux
+powershell -ExecutionPolicy Bypass -File build.ps1   # Windows
+```
+
+产物：
+
+| 路径 | 用途 |
+|------|------|
+| `dist/flomo-memo-v1.0.0.zip` | 直接上传 Chrome Web Store / Edge Add-ons |
+| `dist/unpacked/` | 在 `chrome://extensions` 里「加载已解压的扩展程序」做验收 |
+
+打包脚本会依次做：manifest 校验（含引用文件、`_locales`、`web_accessible_resources` 是否存在）→ 硬编码密钥扫描 → 白名单收集（`manifest.json` / `scripts` / `images` / `_locales`）→ 压缩。
+
+上架相关的全部材料在 [`docs/store/`](docs/store/README.md)：商店文案（中英）、截图与宣传图、权限说明、审核备注、逐步提交指南。
+
 ## 版本历史
 
 ### v1.0.0

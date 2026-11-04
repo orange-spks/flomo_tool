@@ -50,7 +50,9 @@ Flomo Clipper 是一个 Chrome 浏览器扩展（Manifest V3），帮助用户�
 | 正文提取 | `content.js` | `extractArticleByDensity()` (~1032行) |
 | AI 总结调用 | `content.js` | `generateSummary()` (~1154行) |
 | 后台脚本注入 | `background.js` | `chrome.action.onClicked` (~40行) |
-| 一键打包发布 | `build.ps1` | `powershell -ExecutionPolicy Bypass -File build.ps1`（校验 manifest → 密钥扫描 → 白名单收集 → 带版本号打 zip） |
+| 一键打包发布（Windows） | `build.ps1` | `powershell -ExecutionPolicy Bypass -File build.ps1`（校验 manifest → 密钥扫描 → 白名单收集 → 带版本号打 zip） |
+| 一键打包发布（macOS/Linux） | `build.sh` | `bash build.sh`（同上流程，额外保留 `dist/unpacked/` 供真机加载验收） |
+| 商店上架材料 | `docs/store/` | 文案（中英）、截图/宣传图、权限说明、审核备注、逐步提交指南；隐私政策在根目录 `PRIVACY.md` |
 
 # 人设
 
