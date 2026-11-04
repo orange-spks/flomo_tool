@@ -1,0 +1,10 @@
+{
+  "appName": {
+    "message": "flomo Memo",
+    "description": "Extension name (English)"
+  },
+  "appDescription": {
+    "message": "Clip web content with one click, auto-summarize with AI, and save to flomo notes",
+    "description": "Extension description (English)"
+  }
+}
