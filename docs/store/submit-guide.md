@@ -178,6 +178,7 @@
    - 数据用途：按 review-notes.md 第 4 节勾选 + 三条承诺
    - Privacy policy URL：上面那个 GitHub 链接
 4. **Distribution** 标签页：可见性 `Public`，地区全选，价格免费
+   - 这里可能还会问 **Trader status（交易者身份）**（欧盟 DSA 要求）。选 `Non-trader`（个人开发者）的代价是扩展在欧盟地区不可见；想覆盖欧盟就选 `Trader`，并填写你的公开联系信息。按自己需要选，两者都不影响国内用户。
 5. 右上角 **Submit for review**（备注框同样粘 review-notes.md 第 5 节）
 
 ---

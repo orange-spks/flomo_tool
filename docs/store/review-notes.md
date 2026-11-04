@@ -137,7 +137,7 @@ WHAT THE EXTENSION DOES NOT DO
 - The donation QR images in the Settings panel are voluntary tips only; no payment flow exists and
   no payment data is collected.
 
-PRIVACY POLICY: {{PRIVACY POLICY URL}}
+PRIVACY POLICY: https://github.com/orange-spks/flomo_tool/blob/main/PRIVACY.md
 ```
 
 ---

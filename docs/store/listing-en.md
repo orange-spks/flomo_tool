@@ -56,7 +56,7 @@ FIRST-TIME SETUP (in the panel's Settings section)
 2. AI provider (optional - clipping works without it): enter the API base URL, model name and API key. For example DeepSeek: https://api.deepseek.com with deepseek-chat.
 
 PRIVACY
-There is no backend server, no account system and no analytics. Page content is sent only to the AI provider you configure, and only when you press "AI summary". Notes are sent only to your own flomo webhook, and only when you press "Send". Full policy: {{PRIVACY POLICY URL}}
+There is no backend server, no account system and no analytics. Page content is sent only to the AI provider you configure, and only when you press "AI summary". Notes are sent only to your own flomo webhook, and only when you press "Send". Full policy: https://github.com/orange-spks/flomo_tool/blob/main/PRIVACY.md
 
 DISCLAIMER
 This is a third-party tool, not affiliated with flomo. The name "flomo" is used only to describe compatibility. AI usage costs are billed by the provider you choose.
